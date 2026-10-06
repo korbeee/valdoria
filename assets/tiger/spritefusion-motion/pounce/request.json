@@ -1,0 +1,28 @@
+{
+  "requestId": "req_630a6ad1-6f98-47ab-aea0-9a147b22916f",
+  "operation": "animate",
+  "prompt": "An eight-frame right-facing tiger pounce for this exact tiger boss. Start crouched low, compress the hind legs, launch into a long horizontal leap with front paws extended, then land with all paws low and stable. Keep the detailed orange fur, charcoal stripes, expressive feline face, cream muzzle, natural anatomy and tail. No new objects, scenery, clothes, weapons, particles or glow.",
+  "sourceAssetId": "be37218f-ca63-4550-bb78-1cfe4327f83f",
+  "outputs": [
+    {
+      "id": "96439f55-0335-4e91-ba74-2656bf03df0e",
+      "type": "animation",
+      "createdAt": "2026-09-30T02:32:37.203Z",
+      "updatedAt": "2026-09-30T02:32:37.203Z",
+      "prompt": "An eight-frame right-facing tiger pounce for this exact tiger boss. Start crouched low, compress the hind legs, launch into a long horizontal leap with front paws extended, then land with all paws low and stable. Keep the detailed orange fur, charcoal stripes, expressive feline face, cream muzzle, natural anatomy and tail. No new objects, scenery, clothes, weapons, particles or glow.",
+      "width": 126,
+      "height": 63,
+      "assetUrl": "https://media.spritefusion.com/pixel-art-assets/08a402d5-b891-4aa2-9910-9d28d7173a61/96439f55-0335-4e91-ba74-2656bf03df0e/animation.webp?v=1790735557203",
+      "style": "animation",
+      "contentType": "image/webp",
+      "frameCount": 8,
+      "sourceImageUrl": "https://media.spritefusion.com/pixel-art-assets/08a402d5-b891-4aa2-9910-9d28d7173a61/96439f55-0335-4e91-ba74-2656bf03df0e/source.png?v=1790735557203",
+      "spritesheetUrl": "https://media.spritefusion.com/pixel-art-assets/08a402d5-b891-4aa2-9910-9d28d7173a61/96439f55-0335-4e91-ba74-2656bf03df0e/spritesheet.png?v=1790735557203",
+      "fps": 8,
+      "sourceImageAssetId": "be37218f-ca63-4550-bb78-1cfe4327f83f",
+      "sourceImageAssetIds": [
+        "be37218f-ca63-4550-bb78-1cfe4327f83f"
+      ]
+    }
+  ]
+}

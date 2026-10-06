@@ -1,0 +1,28 @@
+{
+  "requestId": "req_4d87666c-021f-4d3f-8fbe-7a88d2df010f",
+  "operation": "animate",
+  "prompt": "Create a seamless eight-frame sleeping idle for this exact curled tiger. Keep every paw and the body firmly resting on the ground at the same baseline. Animate only slow chest breathing, a tiny ear twitch, and one gentle tail-tip movement. Preserve the full body, exact size, pose, pixels, colors, linework and transparent margin in every frame. Do not make the tiger float, slide, stretch, wake up, or add objects, particles, glow, or scenery.",
+  "sourceAssetId": "a2a4607b-e1c9-4570-84de-5030e039b870",
+  "outputs": [
+    {
+      "id": "c5b8d592-9a22-44f2-8b8f-6bf5d5774750",
+      "type": "animation",
+      "createdAt": "2026-09-30T02:59:47.798Z",
+      "updatedAt": "2026-09-30T02:59:47.798Z",
+      "prompt": "Create a seamless eight-frame sleeping idle for this exact curled tiger. Keep every paw and the body firmly resting on the ground at the same baseline. Animate only slow chest breathing, a tiny ear twitch, and one gentle tail-tip movement. Preserve the full body, exact size, pose, pixels, colors, linework and transparent margin in every frame. Do not make the tiger float, slide, stretch, wake up, or add objects, particles, glow, or scenery.",
+      "width": 123,
+      "height": 62,
+      "assetUrl": "https://media.spritefusion.com/pixel-art-assets/08a402d5-b891-4aa2-9910-9d28d7173a61/c5b8d592-9a22-44f2-8b8f-6bf5d5774750/animation.webp?v=1790737187798",
+      "style": "animation",
+      "contentType": "image/webp",
+      "frameCount": 8,
+      "sourceImageUrl": "https://media.spritefusion.com/pixel-art-assets/08a402d5-b891-4aa2-9910-9d28d7173a61/c5b8d592-9a22-44f2-8b8f-6bf5d5774750/source.png?v=1790737187798",
+      "spritesheetUrl": "https://media.spritefusion.com/pixel-art-assets/08a402d5-b891-4aa2-9910-9d28d7173a61/c5b8d592-9a22-44f2-8b8f-6bf5d5774750/spritesheet.png?v=1790737187798",
+      "fps": 8,
+      "sourceImageAssetId": "a2a4607b-e1c9-4570-84de-5030e039b870",
+      "sourceImageAssetIds": [
+        "a2a4607b-e1c9-4570-84de-5030e039b870"
+      ]
+    }
+  ]
+}

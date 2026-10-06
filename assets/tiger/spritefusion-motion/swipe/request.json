@@ -1,0 +1,28 @@
+{
+  "requestId": "req_b8278d5b-1567-4cc0-9a4b-1941447c25a4",
+  "operation": "animate",
+  "prompt": "A single eight-frame right-facing claw swipe attack for this exact tiger boss. Begin in a low planted stance, lift the near forepaw, then sweep it forward with extended claws and return to the same grounded stance. Keep the body horizontal, preserve its exact face, fur, striped palette, paw anatomy and tail. No new objects, scenery, clothes, weapons, particles or glow.",
+  "sourceAssetId": "be37218f-ca63-4550-bb78-1cfe4327f83f",
+  "outputs": [
+    {
+      "id": "5724d586-1ac2-4fd2-95ff-b1e2b1a737e4",
+      "type": "animation",
+      "createdAt": "2026-09-30T02:31:59.514Z",
+      "updatedAt": "2026-09-30T02:31:59.514Z",
+      "prompt": "A single eight-frame right-facing claw swipe attack for this exact tiger boss. Begin in a low planted stance, lift the near forepaw, then sweep it forward with extended claws and return to the same grounded stance. Keep the body horizontal, preserve its exact face, fur, striped palette, paw anatomy and tail. No new objects, scenery, clothes, weapons, particles or glow.",
+      "width": 126,
+      "height": 63,
+      "assetUrl": "https://media.spritefusion.com/pixel-art-assets/08a402d5-b891-4aa2-9910-9d28d7173a61/5724d586-1ac2-4fd2-95ff-b1e2b1a737e4/animation.webp?v=1790735519514",
+      "style": "animation",
+      "contentType": "image/webp",
+      "frameCount": 8,
+      "sourceImageUrl": "https://media.spritefusion.com/pixel-art-assets/08a402d5-b891-4aa2-9910-9d28d7173a61/5724d586-1ac2-4fd2-95ff-b1e2b1a737e4/source.png?v=1790735519514",
+      "spritesheetUrl": "https://media.spritefusion.com/pixel-art-assets/08a402d5-b891-4aa2-9910-9d28d7173a61/5724d586-1ac2-4fd2-95ff-b1e2b1a737e4/spritesheet.png?v=1790735519514",
+      "fps": 8,
+      "sourceImageAssetId": "be37218f-ca63-4550-bb78-1cfe4327f83f",
+      "sourceImageAssetIds": [
+        "be37218f-ca63-4550-bb78-1cfe4327f83f"
+      ]
+    }
+  ]
+}

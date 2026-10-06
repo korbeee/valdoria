@@ -1,0 +1,7 @@
+{
+  "name": "valdoria-server",
+  "private": true,
+  "description": "Servidor multijogador de Valdoria (sem dependencias)",
+  "scripts": { "start": "node server.js" },
+  "engines": { "node": ">=18" }
+}

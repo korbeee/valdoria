@@ -1,0 +1,24 @@
+{
+  "operation": "animate",
+  "prompt": "Web casting attack loop of this exact purple spider. Rear front four legs and spread them, contract purple abdomen, open green mandibles to spit silk then recover. Preserve same body size, ivory crescent markings and eight legs. In place, no web drawn, no added effects or background, entire creature inside canvas, crisp pixel art.",
+  "outputs": [
+    {
+      "id": "d3b856b6-8cf7-4485-bb9d-2289db5404ee",
+      "type": "animation",
+      "createdAt": "2026-10-01T00:46:08.123Z",
+      "updatedAt": "2026-10-01T00:46:08.123Z",
+      "prompt": "Web casting attack loop of this exact purple spider. Rear front four legs and spread them, contract purple abdomen, open green mandibles to spit silk then recover. Preserve same body size, ivory crescent markings and eight legs. In place, no web drawn, no added effects or background, entire creature inside canvas, crisp pixel art.",
+      "width": 192,
+      "height": 128,
+      "assetUrl": "https://media.spritefusion.com/pixel-art-assets/08a402d5-b891-4aa2-9910-9d28d7173a61/d3b856b6-8cf7-4485-bb9d-2289db5404ee/animation.webp?v=1790815568123",
+      "style": "animation",
+      "contentType": "image/webp",
+      "frameCount": 8,
+      "sourceImageUrl": "https://media.spritefusion.com/pixel-art-assets/08a402d5-b891-4aa2-9910-9d28d7173a61/d3b856b6-8cf7-4485-bb9d-2289db5404ee/source.png?v=1790815568123",
+      "spritesheetUrl": "https://media.spritefusion.com/pixel-art-assets/08a402d5-b891-4aa2-9910-9d28d7173a61/d3b856b6-8cf7-4485-bb9d-2289db5404ee/spritesheet.png?v=1790815568123",
+      "fps": 8,
+      "index": 0
+    }
+  ],
+  "requestId": "req_eac46bd1-64ae-46da-9e2a-463a311ec70f"
+}

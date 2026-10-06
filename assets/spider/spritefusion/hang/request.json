@@ -1,0 +1,24 @@
+{
+  "operation": "animate",
+  "prompt": "Suspended giant spider animation loop, exactly this purple spider facing right. Draw eight legs close underneath its body then slowly extend and curl their pointed tips as it hangs from an invisible thread. Same abdomen size and ivory markings, green fangs. Remain centered, no actual thread or effects, no rotation or camera movement, all limbs inside frame, crisp pixel art.",
+  "outputs": [
+    {
+      "id": "245df4f5-97c7-4760-b4ac-7dcc2581941b",
+      "type": "animation",
+      "createdAt": "2026-10-01T00:46:55.551Z",
+      "updatedAt": "2026-10-01T00:46:55.551Z",
+      "prompt": "Suspended giant spider animation loop, exactly this purple spider facing right. Draw eight legs close underneath its body then slowly extend and curl their pointed tips as it hangs from an invisible thread. Same abdomen size and ivory markings, green fangs. Remain centered, no actual thread or effects, no rotation or camera movement, all limbs inside frame, crisp pixel art.",
+      "width": 192,
+      "height": 128,
+      "assetUrl": "https://media.spritefusion.com/pixel-art-assets/08a402d5-b891-4aa2-9910-9d28d7173a61/245df4f5-97c7-4760-b4ac-7dcc2581941b/animation.webp?v=1790815615551",
+      "style": "animation",
+      "contentType": "image/webp",
+      "frameCount": 8,
+      "sourceImageUrl": "https://media.spritefusion.com/pixel-art-assets/08a402d5-b891-4aa2-9910-9d28d7173a61/245df4f5-97c7-4760-b4ac-7dcc2581941b/source.png?v=1790815615551",
+      "spritesheetUrl": "https://media.spritefusion.com/pixel-art-assets/08a402d5-b891-4aa2-9910-9d28d7173a61/245df4f5-97c7-4760-b4ac-7dcc2581941b/spritesheet.png?v=1790815615551",
+      "fps": 8,
+      "index": 0
+    }
+  ],
+  "requestId": "req_242073a3-057e-41c5-8294-c460ac9e0cba"
+}

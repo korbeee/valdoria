@@ -1,0 +1,170 @@
+{
+  "requestId": "req_fbcd9928-c549-4ebe-9c33-0014fcc1d416",
+  "operation": "style-reference",
+  "prompt": "An adult tiger boss for a side-scrolling fantasy cave game, full body in a left-facing three-quarter stalking pose. Use the supplied image strictly as the visual style reference: dense deliberate pixel clusters, expressive feline face, orange fur with bold charcoal stripes, cream muzzle and chest, strong silhouette, visible paws, tail, layered fur and anatomy. Make it imposing and coherent at game scale.",
+  "reference": "C:/Users/bagre/AppData/Local/Temp/codex-clipboard-479ce117-2f43-42a8-83f9-22f6b509c30b.png",
+  "outputs": [
+    {
+      "id": "213c1ac5-5824-4702-ba03-a8c8943d6472",
+      "type": "image",
+      "createdAt": "2026-09-30T02:23:33.324Z",
+      "updatedAt": "2026-09-30T02:23:33.324Z",
+      "prompt": "An adult tiger boss for a side-scrolling fantasy cave game, full body in a left-facing three-quarter stalking pose. Use the supplied image strictly as the visual style reference: dense deliberate pixel clusters, expressive feline face, orange fur with bold charcoal stripes, cream muzzle and chest, strong silhouette, visible paws, tail, layered fur and anatomy. Make it imposing and coherent at game scale.",
+      "width": 69,
+      "height": 69,
+      "assetUrl": "https://media.spritefusion.com/pixel-art-assets/08a402d5-b891-4aa2-9910-9d28d7173a61/213c1ac5-5824-4702-ba03-a8c8943d6472/image.png?v=1790735013324",
+      "style": "default",
+      "contentType": "image/png",
+      "batchId": "7b184127-87e5-4d47-bbec-cf4664634d15",
+      "batchIndex": 0,
+      "batchSize": 9,
+      "action": {
+        "kind": "same-style"
+      }
+    },
+    {
+      "id": "4b26ff50-dad7-453c-a703-900932f7c8fd",
+      "type": "image",
+      "createdAt": "2026-09-30T02:23:33.892Z",
+      "updatedAt": "2026-09-30T02:23:33.892Z",
+      "prompt": "An adult tiger boss for a side-scrolling fantasy cave game, full body in a left-facing three-quarter stalking pose. Use the supplied image strictly as the visual style reference: dense deliberate pixel clusters, expressive feline face, orange fur with bold charcoal stripes, cream muzzle and chest, strong silhouette, visible paws, tail, layered fur and anatomy. Make it imposing and coherent at game scale.",
+      "width": 68,
+      "height": 68,
+      "assetUrl": "https://media.spritefusion.com/pixel-art-assets/08a402d5-b891-4aa2-9910-9d28d7173a61/4b26ff50-dad7-453c-a703-900932f7c8fd/image.png?v=1790735013892",
+      "style": "default",
+      "contentType": "image/png",
+      "batchId": "7b184127-87e5-4d47-bbec-cf4664634d15",
+      "batchIndex": 1,
+      "batchSize": 9,
+      "action": {
+        "kind": "same-style"
+      }
+    },
+    {
+      "id": "ca689811-5d1f-4423-a47b-ab483ba2b5a9",
+      "type": "image",
+      "createdAt": "2026-09-30T02:23:34.498Z",
+      "updatedAt": "2026-09-30T02:23:34.498Z",
+      "prompt": "An adult tiger boss for a side-scrolling fantasy cave game, full body in a left-facing three-quarter stalking pose. Use the supplied image strictly as the visual style reference: dense deliberate pixel clusters, expressive feline face, orange fur with bold charcoal stripes, cream muzzle and chest, strong silhouette, visible paws, tail, layered fur and anatomy. Make it imposing and coherent at game scale.",
+      "width": 69,
+      "height": 69,
+      "assetUrl": "https://media.spritefusion.com/pixel-art-assets/08a402d5-b891-4aa2-9910-9d28d7173a61/ca689811-5d1f-4423-a47b-ab483ba2b5a9/image.png?v=1790735014498",
+      "style": "default",
+      "contentType": "image/png",
+      "batchId": "7b184127-87e5-4d47-bbec-cf4664634d15",
+      "batchIndex": 2,
+      "batchSize": 9,
+      "action": {
+        "kind": "same-style"
+      }
+    },
+    {
+      "id": "d418c020-e1a5-461c-86a8-77cd9600ac62",
+      "type": "image",
+      "createdAt": "2026-09-30T02:23:35.082Z",
+      "updatedAt": "2026-09-30T02:23:35.082Z",
+      "prompt": "An adult tiger boss for a side-scrolling fantasy cave game, full body in a left-facing three-quarter stalking pose. Use the supplied image strictly as the visual style reference: dense deliberate pixel clusters, expressive feline face, orange fur with bold charcoal stripes, cream muzzle and chest, strong silhouette, visible paws, tail, layered fur and anatomy. Make it imposing and coherent at game scale.",
+      "width": 70,
+      "height": 70,
+      "assetUrl": "https://media.spritefusion.com/pixel-art-assets/08a402d5-b891-4aa2-9910-9d28d7173a61/d418c020-e1a5-461c-86a8-77cd9600ac62/image.png?v=1790735015082",
+      "style": "default",
+      "contentType": "image/png",
+      "batchId": "7b184127-87e5-4d47-bbec-cf4664634d15",
+      "batchIndex": 3,
+      "batchSize": 9,
+      "action": {
+        "kind": "same-style"
+      }
+    },
+    {
+      "id": "c881674a-cc06-45fc-bd71-5956ccf15c50",
+      "type": "image",
+      "createdAt": "2026-09-30T02:23:35.622Z",
+      "updatedAt": "2026-09-30T02:23:35.622Z",
+      "prompt": "An adult tiger boss for a side-scrolling fantasy cave game, full body in a left-facing three-quarter stalking pose. Use the supplied image strictly as the visual style reference: dense deliberate pixel clusters, expressive feline face, orange fur with bold charcoal stripes, cream muzzle and chest, strong silhouette, visible paws, tail, layered fur and anatomy. Make it imposing and coherent at game scale.",
+      "width": 70,
+      "height": 70,
+      "assetUrl": "https://media.spritefusion.com/pixel-art-assets/08a402d5-b891-4aa2-9910-9d28d7173a61/c881674a-cc06-45fc-bd71-5956ccf15c50/image.png?v=1790735015622",
+      "style": "default",
+      "contentType": "image/png",
+      "batchId": "7b184127-87e5-4d47-bbec-cf4664634d15",
+      "batchIndex": 4,
+      "batchSize": 9,
+      "action": {
+        "kind": "same-style"
+      }
+    },
+    {
+      "id": "068930ab-7d92-4d95-9e5d-70f6302876b7",
+      "type": "image",
+      "createdAt": "2026-09-30T02:23:36.186Z",
+      "updatedAt": "2026-09-30T02:23:36.186Z",
+      "prompt": "An adult tiger boss for a side-scrolling fantasy cave game, full body in a left-facing three-quarter stalking pose. Use the supplied image strictly as the visual style reference: dense deliberate pixel clusters, expressive feline face, orange fur with bold charcoal stripes, cream muzzle and chest, strong silhouette, visible paws, tail, layered fur and anatomy. Make it imposing and coherent at game scale.",
+      "width": 72,
+      "height": 72,
+      "assetUrl": "https://media.spritefusion.com/pixel-art-assets/08a402d5-b891-4aa2-9910-9d28d7173a61/068930ab-7d92-4d95-9e5d-70f6302876b7/image.png?v=1790735016186",
+      "style": "default",
+      "contentType": "image/png",
+      "batchId": "7b184127-87e5-4d47-bbec-cf4664634d15",
+      "batchIndex": 5,
+      "batchSize": 9,
+      "action": {
+        "kind": "same-style"
+      }
+    },
+    {
+      "id": "0197ecb5-7678-40c4-b829-58ae48e05785",
+      "type": "image",
+      "createdAt": "2026-09-30T02:23:36.755Z",
+      "updatedAt": "2026-09-30T02:23:36.755Z",
+      "prompt": "An adult tiger boss for a side-scrolling fantasy cave game, full body in a left-facing three-quarter stalking pose. Use the supplied image strictly as the visual style reference: dense deliberate pixel clusters, expressive feline face, orange fur with bold charcoal stripes, cream muzzle and chest, strong silhouette, visible paws, tail, layered fur and anatomy. Make it imposing and coherent at game scale.",
+      "width": 71,
+      "height": 71,
+      "assetUrl": "https://media.spritefusion.com/pixel-art-assets/08a402d5-b891-4aa2-9910-9d28d7173a61/0197ecb5-7678-40c4-b829-58ae48e05785/image.png?v=1790735016755",
+      "style": "default",
+      "contentType": "image/png",
+      "batchId": "7b184127-87e5-4d47-bbec-cf4664634d15",
+      "batchIndex": 6,
+      "batchSize": 9,
+      "action": {
+        "kind": "same-style"
+      }
+    },
+    {
+      "id": "821a5b3d-54f5-41a1-9d64-d2522c587a37",
+      "type": "image",
+      "createdAt": "2026-09-30T02:23:37.331Z",
+      "updatedAt": "2026-09-30T02:23:37.331Z",
+      "prompt": "An adult tiger boss for a side-scrolling fantasy cave game, full body in a left-facing three-quarter stalking pose. Use the supplied image strictly as the visual style reference: dense deliberate pixel clusters, expressive feline face, orange fur with bold charcoal stripes, cream muzzle and chest, strong silhouette, visible paws, tail, layered fur and anatomy. Make it imposing and coherent at game scale.",
+      "width": 69,
+      "height": 69,
+      "assetUrl": "https://media.spritefusion.com/pixel-art-assets/08a402d5-b891-4aa2-9910-9d28d7173a61/821a5b3d-54f5-41a1-9d64-d2522c587a37/image.png?v=1790735017331",
+      "style": "default",
+      "contentType": "image/png",
+      "batchId": "7b184127-87e5-4d47-bbec-cf4664634d15",
+      "batchIndex": 7,
+      "batchSize": 9,
+      "action": {
+        "kind": "same-style"
+      }
+    },
+    {
+      "id": "ef496c6c-feb3-4571-bafd-07fae11c0d0c",
+      "type": "image",
+      "createdAt": "2026-09-30T02:23:37.914Z",
+      "updatedAt": "2026-09-30T02:23:37.914Z",
+      "prompt": "An adult tiger boss for a side-scrolling fantasy cave game, full body in a left-facing three-quarter stalking pose. Use the supplied image strictly as the visual style reference: dense deliberate pixel clusters, expressive feline face, orange fur with bold charcoal stripes, cream muzzle and chest, strong silhouette, visible paws, tail, layered fur and anatomy. Make it imposing and coherent at game scale.",
+      "width": 72,
+      "height": 72,
+      "assetUrl": "https://media.spritefusion.com/pixel-art-assets/08a402d5-b891-4aa2-9910-9d28d7173a61/ef496c6c-feb3-4571-bafd-07fae11c0d0c/image.png?v=1790735017914",
+      "style": "default",
+      "contentType": "image/png",
+      "batchId": "7b184127-87e5-4d47-bbec-cf4664634d15",
+      "batchIndex": 8,
+      "batchSize": 9,
+      "action": {
+        "kind": "same-style"
+      }
+    }
+  ]
+}

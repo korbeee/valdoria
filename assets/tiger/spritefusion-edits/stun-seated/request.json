@@ -1,0 +1,52 @@
+{
+  "requestId": "req_8fbb045d-6f7c-42ba-a6eb-8ee33c935a75",
+  "operation": "edit",
+  "prompt": "Change this exact tiger into a seated stunned pose after hitting a stone wall. Its rear legs must be folded on the ground under the torso, its front paws must be planted on the ground, and its tail lies naturally behind it. The tiger is never floating. Tilt the head slightly with dazed eyes and add three small amber stars above its head. Preserve the same detailed orange fur, charcoal stripes, cream muzzle, feline face, proportions, line work and pixel-art quality. Remove no body parts and add no clothes, weapons or scenery.",
+  "sourceAssetId": "be37218f-ca63-4550-bb78-1cfe4327f83f",
+  "outputs": [
+    {
+      "id": "c5992534-c87c-4cd6-9d8c-f79296b078b6",
+      "type": "image",
+      "createdAt": "2026-09-30T02:35:09.442Z",
+      "updatedAt": "2026-09-30T02:35:09.442Z",
+      "prompt": "Change this exact tiger into a seated stunned pose after hitting a stone wall. Its rear legs must be folded on the ground under the torso, its front paws must be planted on the ground, and its tail lies naturally behind it. The tiger is never floating. Tilt the head slightly with dazed eyes and add three small amber stars above its head. Preserve the same detailed orange fur, charcoal stripes, cream muzzle, feline face, proportions, line work and pixel-art quality. Remove no body parts and add no clothes, weapons or scenery.",
+      "width": 97,
+      "height": 77,
+      "assetUrl": "https://media.spritefusion.com/pixel-art-assets/08a402d5-b891-4aa2-9910-9d28d7173a61/c5992534-c87c-4cd6-9d8c-f79296b078b6/image.png?v=1790735709442",
+      "style": "default",
+      "contentType": "image/png",
+      "batchId": "6c4cee9c-3293-4aec-8fde-60c112afc669",
+      "batchIndex": 0,
+      "batchSize": 2,
+      "action": {
+        "kind": "edit",
+        "sourceImageAssetId": "be37218f-ca63-4550-bb78-1cfe4327f83f",
+        "sourceImageAssetIds": [
+          "be37218f-ca63-4550-bb78-1cfe4327f83f"
+        ]
+      }
+    },
+    {
+      "id": "51c58265-b7db-4e8a-8807-8db2979c4c11",
+      "type": "image",
+      "createdAt": "2026-09-30T02:35:10.687Z",
+      "updatedAt": "2026-09-30T02:35:10.687Z",
+      "prompt": "Change this exact tiger into a seated stunned pose after hitting a stone wall. Its rear legs must be folded on the ground under the torso, its front paws must be planted on the ground, and its tail lies naturally behind it. The tiger is never floating. Tilt the head slightly with dazed eyes and add three small amber stars above its head. Preserve the same detailed orange fur, charcoal stripes, cream muzzle, feline face, proportions, line work and pixel-art quality. Remove no body parts and add no clothes, weapons or scenery.",
+      "width": 123,
+      "height": 116,
+      "assetUrl": "https://media.spritefusion.com/pixel-art-assets/08a402d5-b891-4aa2-9910-9d28d7173a61/51c58265-b7db-4e8a-8807-8db2979c4c11/image.png?v=1790735710687",
+      "style": "default",
+      "contentType": "image/png",
+      "batchId": "6c4cee9c-3293-4aec-8fde-60c112afc669",
+      "batchIndex": 1,
+      "batchSize": 2,
+      "action": {
+        "kind": "edit",
+        "sourceImageAssetId": "be37218f-ca63-4550-bb78-1cfe4327f83f",
+        "sourceImageAssetIds": [
+          "be37218f-ca63-4550-bb78-1cfe4327f83f"
+        ]
+      }
+    }
+  ]
+}

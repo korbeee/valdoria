@@ -1,0 +1,24 @@
+{
+  "operation": "animate",
+  "prompt": "Stationary breathing idle loop. This exact tiger stands on four planted paws, blinks and subtly moves its tail tip. Fixed camera, no walking or translation, consistent anatomy and size throughout.",
+  "source": "spritefusion-refined-test/variation-2.png",
+  "outputs": [
+    {
+      "id": "60bf5bc1-f99e-4de8-a3f0-34ef32c88509",
+      "type": "animation",
+      "createdAt": "2026-09-30T03:09:27.419Z",
+      "updatedAt": "2026-09-30T03:09:27.419Z",
+      "prompt": "Stationary breathing idle loop. This exact tiger stands on four planted paws, blinks and subtly moves its tail tip. Fixed camera, no walking or translation, consistent anatomy and size throughout.",
+      "width": 200,
+      "height": 100,
+      "assetUrl": "https://media.spritefusion.com/pixel-art-assets/08a402d5-b891-4aa2-9910-9d28d7173a61/60bf5bc1-f99e-4de8-a3f0-34ef32c88509/animation.webp?v=1790737767419",
+      "style": "animation",
+      "contentType": "image/webp",
+      "frameCount": 8,
+      "sourceImageUrl": "https://media.spritefusion.com/pixel-art-assets/08a402d5-b891-4aa2-9910-9d28d7173a61/60bf5bc1-f99e-4de8-a3f0-34ef32c88509/source.png?v=1790737767419",
+      "spritesheetUrl": "https://media.spritefusion.com/pixel-art-assets/08a402d5-b891-4aa2-9910-9d28d7173a61/60bf5bc1-f99e-4de8-a3f0-34ef32c88509/spritesheet.png?v=1790737767419",
+      "fps": 8
+    }
+  ],
+  "requestId": "req_6ab191fb-5de1-4683-aa25-dc2298f72231"
+}

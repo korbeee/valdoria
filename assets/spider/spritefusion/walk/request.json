@@ -1,0 +1,24 @@
+{
+  "operation": "animate",
+  "prompt": "Seamless side-scrolling walk cycle in place facing right. Same purple spider and same size throughout. All eight articulated legs lift and plant in coordinated alternating groups, clear knee bending, grounded feet, subtle abdomen bob. Preserve ivory crescent markings, amber eyes, green fangs and pixel art. No camera movement, no zoom, no extra effects, entire creature including every leg inside canvas with generous margins.",
+  "outputs": [
+    {
+      "id": "efcdffd5-fb9c-453f-8180-b655c6bb0409",
+      "type": "animation",
+      "createdAt": "2026-10-01T00:43:03.293Z",
+      "updatedAt": "2026-10-01T00:43:03.293Z",
+      "prompt": "Seamless side-scrolling walk cycle in place facing right. Same purple spider and same size throughout. All eight articulated legs lift and plant in coordinated alternating groups, clear knee bending, grounded feet, subtle abdomen bob. Preserve ivory crescent markings, amber eyes, green fangs and pixel art. No camera movement, no zoom, no extra effects, entire creature including every leg inside canvas with generous margins.",
+      "width": 192,
+      "height": 128,
+      "assetUrl": "https://media.spritefusion.com/pixel-art-assets/08a402d5-b891-4aa2-9910-9d28d7173a61/efcdffd5-fb9c-453f-8180-b655c6bb0409/animation.webp?v=1790815383293",
+      "style": "animation",
+      "contentType": "image/webp",
+      "frameCount": 16,
+      "sourceImageUrl": "https://media.spritefusion.com/pixel-art-assets/08a402d5-b891-4aa2-9910-9d28d7173a61/efcdffd5-fb9c-453f-8180-b655c6bb0409/source.png?v=1790815383293",
+      "spritesheetUrl": "https://media.spritefusion.com/pixel-art-assets/08a402d5-b891-4aa2-9910-9d28d7173a61/efcdffd5-fb9c-453f-8180-b655c6bb0409/spritesheet.png?v=1790815383293",
+      "fps": 8,
+      "index": 0
+    }
+  ],
+  "requestId": "req_852b637d-140a-42c3-b547-b4f736b85b95"
+}

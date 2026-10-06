@@ -1,0 +1,72 @@
+const fs=require('node:fs');
+const {chromium}=require(process.env.PLAYWRIGHT_PATH || 'playwright');
+(async()=>{const browser=await chromium.launch({channel:'msedge',headless:true});try{
+ const page=await browser.newPage(),errors=[];page.on('pageerror',e=>errors.push(e.message));
+ await page.addInitScript(()=>{window.requestAnimationFrame=()=>0;localStorage.setItem('valdoria.autoconnect','0');});
+ await page.goto('http://localhost/jogo-teste/',{waitUntil:'domcontentloaded'});await page.waitForFunction(()=>typeof game==='object'&&typeof useBossSummoner==='function');
+ const result=await page.evaluate(()=>{
+  const g=game,p=player,checks=[],check=(ok,s)=>{if(!ok)throw Error(s);checks.push(s);};
+  g.intro.active=false;g.paused=false;Menu.close();g.respawnPending=null;g.adminGod=true;setWeatherEvent(g,'calm',100);
+  const w=new World(180,110,4242,{lazy:true});w.biome.fill(BIOME.SNOW);w.surface.fill(70);w.skyTop.fill(70);
+  for(let x=0;x<w.w;x++)for(let y=70;y<w.h;y++)w.setTile(x,y,TILE.SNOW);
+  g.world=world=w;Object.assign(p,{x:80*T-p.w/2,y:70*T-p.h-.01,hp:100,maxHp:100,onGround:true});
+  const bounds=[40,40,140,70];w.bearLairs=[{x:80*T,y:70*T,bounds,door:[]}];w.tigerDens=[{x:80*T,y:70*T}];
+  w.spiderNests=[{x:80*T,ceilY:40*T,floorY:70*T,bounds,door:[]}];w.beetleLairs=[{x:80*T,y:70*T,bounds,door:[],gate:[]}];
+  for(let x=40;x<=140;x++)w.setTile(x,40,TILE.STONE);
+  w.coreHeart={cx:80,cy:60,A:30,B:20,floor:70,core:{x:80*T,y:52*T},gate:[]};w.skyNest={cx:80,R:25,floor:70};
+  const reset=()=>{g.mobs=[];g.boss=null;g.placeCooldown=0;g.tigerSlain=g.spiderSlain=false;g.inventory.slots.fill(null);p.x=80*T-p.w/2;p.y=70*T-p.h-.01;p.hp=100;w.biome.fill(BIOME.FOREST);w.coreHeart=w.skyNest=null;w.bearLairs=w.tigerDens=w.spiderNests=w.beetleLairs=[];g.weather.rain=0;};
+  const hold=id=>{g.inventory.slots[g.selected]={item:id,count:2};g.placeCooldown=0;};
+  check(BOSS_SUMMONERS.size===7,'todos os sete chefes têm invocadores');
+  const recipes=craftRecipes(),guide=guideBuildIndex();
+  for(const [id,rule]of BOSS_SUMMONERS){
+   const r=recipes.find(r=>r.result.item===id);check(r&&r.items.length===4&&r.items.every(a=>ITEM_DEFS[a.item]?.name&&a.count>0),'receita válida e intermediária: '+rule.kind);
+   check(!r.items.some(a=>ITEM_DEFS[a.item].bossItem&&(WILDLIFE[rule.kind].drops||[]).some(d=>d[0]===a.item)),'receita não depende de um espólio exclusivo do próprio chefe: '+rule.kind);
+   check(guide.byId.get(id)?.recipes.length===1,'invocador e receita aparecem no guia: '+rule.kind);
+   check(ITEM_ART[id].pixels.every(row=>row.length===16),'ícone em pixel art: '+rule.kind);
+   reset();hold(id);
+   check(useBossSummoner(g),'uso invoca '+rule.kind);
+   check(g.boss?.kind===rule.kind&&g.boss.state==='wake'&&!g.boss.sleeping&&g.inventory.slots[g.selected].count===1,'ativação e consumo único: '+rule.kind);
+   g.placeCooldown=0;check(!useBossSummoner(g)&&g.inventory.slots[g.selected].count===1,'luta ativa não consome outro invocador: '+rule.kind);
+   const slain=g.boss;slain.dead=true;slain.despawn=true;g.boss=null;g.placeCooldown=0;
+   check(useBossSummoner(g)&&g.boss!==slain&&g.inventory.slots[g.selected]===null,'chefe derrotado pode ser invocado novamente: '+rule.kind);
+   const m=g.boss;for(let i=0;i<600;i++)m.update(1/60,w,p);
+   check(Number.isFinite(m.x)&&Number.isFinite(m.y)&&m.hp>0,'IA do chefe invocado permanece válida: '+rule.kind);
+   check(!m.sleeping&&!m.despawn&&!['cocoon','buried','vanish'].includes(m.state),'chefe luta fora do habitat sem progressão: '+rule.kind);
+  }
+  reset();hold(ITEM.YETI_SUMMONER);check(useBossSummoner(g),'Yeti manual aparece sem tempestade e fora do gelo');
+  const yeti=g.boss;Object.assign(yeti,{state:'hunt',stateT:0,x:p.cx-250,cooldown:100});yeti.update(.01,w,p);const fast=Math.abs(yeti.vx);
+  check(yeti.outsideIce&&fast>YETI.speed,'Yeti fora do gelo se move mais rápido');
+  let damage=0;const damageFn=damageMonsterPlayer;damageMonsterPlayer=(g,n)=>{damage=n;};p.invulnerable=0;yetiHitPlayer(g,yeti,20);damageMonsterPlayer=damageFn;
+  check(damage===27,'Yeti fora do gelo causa 35% mais dano');
+  w.biome.fill(BIOME.SNOW);yeti.x=p.cx-250;yeti.update(.01,w,p);check(!yeti.outsideIce&&Math.abs(yeti.vx)===YETI.speed,'Yeti volta à velocidade normal no gelo');
+  const natural=new Wildlife('yeti',p.x+200,p.y);for(let i=0;i<60;i++)natural.update(1/60,w,p);check(natural.despawn,'Yeti natural ainda depende da nevasca');
+  reset();hold(ITEM.CORE_SUMMONER);const tiles=w.tiles.slice();check(useBossSummoner(g)&&w.coreHeart===null&&w.tiles.every((v,i)=>v===tiles[i]),'Núcleo manual não altera a câmara nem o mapa');
+  for(const biome of Object.values(BIOME))for(const [id,rule]of BOSS_SUMMONERS){
+   reset();w.biome.fill(biome);hold(id);check(useBossSummoner(g)&&g.boss.summonerCreated,'invocação de '+rule.kind+' no bioma '+biome);
+  }
+  reset();hold(ITEM.BEAR_SUMMONER);for(let x=0;x<w.w;x++)for(let y=0;y<w.h;y++)w.setTile(x,y,TILE.STONE);
+  check(!useBossSummoner(g)&&g.inventory.count(ITEM.BEAR_SUMMONER)===2,'falta de espaço livre não consome o invocador');
+  for(let x=0;x<w.w;x++)for(let y=0;y<70;y++)w.setTile(x,y,TILE.AIR);
+  reset();hold(ITEM.BEAR_SUMMONER);useBossSummoner(g);const manual=g.boss;
+  const dormant=new Wildlife('tiger',p.cx+50,p.y);g.mobs.push(dormant);
+  g.mobSpawnTimer=g.monsterTimer=100;updateMobs(g,.016);
+  check(g.boss===manual&&dormant.sleeping,'boss natural não interfere na luta invocada manualmente');
+  reset();hold(ITEM.BEAR_SUMMONER);
+  const send=netRelay,sent=[];netRelay=(d,to)=>sent.push({d,to});NET.room={code:'SUMMON'};NET.isHost=false;NET.hostCid=5;
+  check(useBossSummoner(g)&&g.mobs.length===0&&SUMMON_STATE.pending&&g.inventory.slots[g.selected].count===1,'convidado reserva item e solicita ao host sem criar chefe local');
+  const seq=SUMMON_STATE.pending.seq;netOnRelay(5,{k:'summonBossResult',seq,ok:false,message:'Local inválido'});
+  check(!SUMMON_STATE.pending&&g.inventory.count(ITEM.BEAR_SUMMONER)===2,'recusa do host devolve invocador');
+  NET.isHost=true;const peer=netPeer(8,'Pedro');Object.assign(peer,{seen:true,item:ITEM.BEAR_SUMMONER,hp:100,x:80*T-p.w/2,y:70*T-p.h-.01});
+  peer.buf=[{x:peer.x,y:peer.y,h:peer.h}];peer.x=10*T;
+  netOnRelay(8,{k:'summonBoss',id:ITEM.BEAR_SUMMONER,seq:10});
+  check(g.boss?.kind==='bear'&&sent.some(q=>q.to===8&&q.d.k==='summonBossResult'&&q.d.ok),'pedido remoto ativa chefe no host e confirma ao dono');
+  check(peer.x===peer.buf[0].x&&peer.buf.length===1,'invocação confirmada descarta posições anteriores ao teleporte');
+  const count=g.mobs.length;netOnRelay(8,{k:'summonBoss',id:ITEM.BEAR_SUMMONER,seq:10});check(g.mobs.length===count,'pedido duplicado não duplica chefe');
+  NET.room=null;NET.isHost=false;netRelay=send;
+  const c=makeCanvas(560,80),ctx=c.getContext('2d');ctx.imageSmoothingEnabled=false;ctx.fillStyle='#182430';ctx.fillRect(0,0,560,80);
+  [...BOSS_SUMMONERS.keys()].forEach((id,i)=>{ctx.drawImage(renderer.tex.itemAtlas,id*T,0,T,T,i*80+20,15,40,40);ctx.fillStyle='#e0c391';ctx.font='8px monospace';ctx.textAlign='center';ctx.fillText(BOSS_SUMMONERS.get(id).kind,i*80+40,70);});
+  return {checks,png:c.toDataURL()};
+ });
+ if(errors.length)throw Error(errors.join('\n'));fs.writeFileSync(__dirname+'/boss-summoners.png',Buffer.from(result.png.split(',')[1],'base64'));
+ console.log(result.checks.length+' verificações de invocadores passaram.');
+}finally{await browser.close();}})().catch(e=>{console.error(e);process.exit(1);});

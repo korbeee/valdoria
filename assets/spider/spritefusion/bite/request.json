@@ -1,0 +1,24 @@
+{
+  "operation": "animate",
+  "prompt": "Attack animation of this exact purple spider facing right, in place. First lower body and draw front legs back, then rear front legs and thrust head and green fangs forward for a fierce bite, then return to ready stance. Eight legs, same anatomy and body size. No translation across canvas, no zoom, all legs and fangs fully visible with margins, crisp pixel art.",
+  "outputs": [
+    {
+      "id": "ea6bdc3b-b97b-4da0-b60b-6a87ea53238a",
+      "type": "animation",
+      "createdAt": "2026-10-01T00:45:45.596Z",
+      "updatedAt": "2026-10-01T00:45:45.596Z",
+      "prompt": "Attack animation of this exact purple spider facing right, in place. First lower body and draw front legs back, then rear front legs and thrust head and green fangs forward for a fierce bite, then return to ready stance. Eight legs, same anatomy and body size. No translation across canvas, no zoom, all legs and fangs fully visible with margins, crisp pixel art.",
+      "width": 192,
+      "height": 128,
+      "assetUrl": "https://media.spritefusion.com/pixel-art-assets/08a402d5-b891-4aa2-9910-9d28d7173a61/ea6bdc3b-b97b-4da0-b60b-6a87ea53238a/animation.webp?v=1790815545596",
+      "style": "animation",
+      "contentType": "image/webp",
+      "frameCount": 8,
+      "sourceImageUrl": "https://media.spritefusion.com/pixel-art-assets/08a402d5-b891-4aa2-9910-9d28d7173a61/ea6bdc3b-b97b-4da0-b60b-6a87ea53238a/source.png?v=1790815545596",
+      "spritesheetUrl": "https://media.spritefusion.com/pixel-art-assets/08a402d5-b891-4aa2-9910-9d28d7173a61/ea6bdc3b-b97b-4da0-b60b-6a87ea53238a/spritesheet.png?v=1790815545596",
+      "fps": 8,
+      "index": 0
+    }
+  ],
+  "requestId": "req_8878f01c-e60e-415a-bc3d-4ff613204a8a"
+}

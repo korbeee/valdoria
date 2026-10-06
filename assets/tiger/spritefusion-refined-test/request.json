@@ -1,0 +1,15 @@
+{
+  "sourceAssetId": "213c1ac5-5824-4702-ba03-a8c8943d6472",
+  "operation": "edit",
+  "outputs": [
+    {
+      "id": "9b5b0526-60a7-4cfb-8604-7edc7578773c",
+      "path": "assets/tiger/spritefusion-refined-test/variation-1.png"
+    },
+    {
+      "id": "be37218f-ca63-4550-bb78-1cfe4327f83f",
+      "path": "assets/tiger/spritefusion-refined-test/variation-2.png"
+    }
+  ],
+  "requestId": "recovered-from-api"
+}

@@ -1,0 +1,52 @@
+{
+  "requestId": "req_b0e2293e-9bb7-44b3-b3c2-ef0957587082",
+  "operation": "edit",
+  "prompt": "Change this exact tiger into a full-body right-facing roaring pose for a 2D side-scrolling boss. Keep all four paws firmly on the same ground level and the torso long and horizontal. Raise the head slightly, open the mouth in a roar with visible fangs, and keep the same orange fur, charcoal stripes, cream muzzle, expressive face, detailed pixel clusters and outline thickness from the source. Keep the entire tiger visible with transparent margin. No scenery, clothes, objects, particles or glow.",
+  "sourceAssetId": "be37218f-ca63-4550-bb78-1cfe4327f83f",
+  "outputs": [
+    {
+      "id": "d88043bd-469f-477d-bbd9-37f2e56f1a66",
+      "type": "image",
+      "createdAt": "2026-09-30T02:50:23.535Z",
+      "updatedAt": "2026-09-30T02:50:23.535Z",
+      "prompt": "Change this exact tiger into a full-body right-facing roaring pose for a 2D side-scrolling boss. Keep all four paws firmly on the same ground level and the torso long and horizontal. Raise the head slightly, open the mouth in a roar with visible fangs, and keep the same orange fur, charcoal stripes, cream muzzle, expressive face, detailed pixel clusters and outline thickness from the source. Keep the entire tiger visible with transparent margin. No scenery, clothes, objects, particles or glow.",
+      "width": 130,
+      "height": 54,
+      "assetUrl": "https://media.spritefusion.com/pixel-art-assets/08a402d5-b891-4aa2-9910-9d28d7173a61/d88043bd-469f-477d-bbd9-37f2e56f1a66/image.png?v=1790736623535",
+      "style": "default",
+      "contentType": "image/png",
+      "batchId": "f995b24d-1147-4fb1-86b8-9a568776e8a7",
+      "batchIndex": 0,
+      "batchSize": 2,
+      "action": {
+        "kind": "edit",
+        "sourceImageAssetId": "be37218f-ca63-4550-bb78-1cfe4327f83f",
+        "sourceImageAssetIds": [
+          "be37218f-ca63-4550-bb78-1cfe4327f83f"
+        ]
+      }
+    },
+    {
+      "id": "ed1b20cc-2646-484f-9c83-4420e70fdec6",
+      "type": "image",
+      "createdAt": "2026-09-30T02:50:24.504Z",
+      "updatedAt": "2026-09-30T02:50:24.504Z",
+      "prompt": "Change this exact tiger into a full-body right-facing roaring pose for a 2D side-scrolling boss. Keep all four paws firmly on the same ground level and the torso long and horizontal. Raise the head slightly, open the mouth in a roar with visible fangs, and keep the same orange fur, charcoal stripes, cream muzzle, expressive face, detailed pixel clusters and outline thickness from the source. Keep the entire tiger visible with transparent margin. No scenery, clothes, objects, particles or glow.",
+      "width": 123,
+      "height": 58,
+      "assetUrl": "https://media.spritefusion.com/pixel-art-assets/08a402d5-b891-4aa2-9910-9d28d7173a61/ed1b20cc-2646-484f-9c83-4420e70fdec6/image.png?v=1790736624504",
+      "style": "default",
+      "contentType": "image/png",
+      "batchId": "f995b24d-1147-4fb1-86b8-9a568776e8a7",
+      "batchIndex": 1,
+      "batchSize": 2,
+      "action": {
+        "kind": "edit",
+        "sourceImageAssetId": "be37218f-ca63-4550-bb78-1cfe4327f83f",
+        "sourceImageAssetIds": [
+          "be37218f-ca63-4550-bb78-1cfe4327f83f"
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,52 @@
+{
+  "requestId": "req_7f7c2c45-cc0c-4b6b-b4ac-546c1a6e5cda",
+  "operation": "edit",
+  "prompt": "Change this exact tiger into a full-body right-facing stunned pose that matches the walk sprite proportions and horizontal silhouette. Keep the torso low and long, with the rear paws folded on the ground and both front paws planted at the same ground level. The head droops forward with dazed eyes; add three tiny amber stars just above the head. Keep the same pixel cluster size, black outline thickness, orange fur, charcoal stripes, cream muzzle, face and tail from the source. Leave clear transparent margin around the entire sprite. No scenery, clothes, weapons or extra effects.",
+  "sourceAssetId": "be37218f-ca63-4550-bb78-1cfe4327f83f",
+  "outputs": [
+    {
+      "id": "5322bea8-c6be-4070-b312-90c3a2979880",
+      "type": "image",
+      "createdAt": "2026-09-30T02:46:47.001Z",
+      "updatedAt": "2026-09-30T02:46:47.001Z",
+      "prompt": "Change this exact tiger into a full-body right-facing stunned pose that matches the walk sprite proportions and horizontal silhouette. Keep the torso low and long, with the rear paws folded on the ground and both front paws planted at the same ground level. The head droops forward with dazed eyes; add three tiny amber stars just above the head. Keep the same pixel cluster size, black outline thickness, orange fur, charcoal stripes, cream muzzle, face and tail from the source. Leave clear transparent margin around the entire sprite. No scenery, clothes, weapons or extra effects.",
+      "width": 126,
+      "height": 56,
+      "assetUrl": "https://media.spritefusion.com/pixel-art-assets/08a402d5-b891-4aa2-9910-9d28d7173a61/5322bea8-c6be-4070-b312-90c3a2979880/image.png?v=1790736407001",
+      "style": "default",
+      "contentType": "image/png",
+      "batchId": "7baca161-73c2-4584-b588-ded26501c3fa",
+      "batchIndex": 0,
+      "batchSize": 2,
+      "action": {
+        "kind": "edit",
+        "sourceImageAssetId": "be37218f-ca63-4550-bb78-1cfe4327f83f",
+        "sourceImageAssetIds": [
+          "be37218f-ca63-4550-bb78-1cfe4327f83f"
+        ]
+      }
+    },
+    {
+      "id": "73873306-2beb-4fbd-a319-60fc765169be",
+      "type": "image",
+      "createdAt": "2026-09-30T02:46:47.889Z",
+      "updatedAt": "2026-09-30T02:46:47.889Z",
+      "prompt": "Change this exact tiger into a full-body right-facing stunned pose that matches the walk sprite proportions and horizontal silhouette. Keep the torso low and long, with the rear paws folded on the ground and both front paws planted at the same ground level. The head droops forward with dazed eyes; add three tiny amber stars just above the head. Keep the same pixel cluster size, black outline thickness, orange fur, charcoal stripes, cream muzzle, face and tail from the source. Leave clear transparent margin around the entire sprite. No scenery, clothes, weapons or extra effects.",
+      "width": 224,
+      "height": 108,
+      "assetUrl": "https://media.spritefusion.com/pixel-art-assets/08a402d5-b891-4aa2-9910-9d28d7173a61/73873306-2beb-4fbd-a319-60fc765169be/image.png?v=1790736407889",
+      "style": "default",
+      "contentType": "image/png",
+      "batchId": "7baca161-73c2-4584-b588-ded26501c3fa",
+      "batchIndex": 1,
+      "batchSize": 2,
+      "action": {
+        "kind": "edit",
+        "sourceImageAssetId": "be37218f-ca63-4550-bb78-1cfe4327f83f",
+        "sourceImageAssetIds": [
+          "be37218f-ca63-4550-bb78-1cfe4327f83f"
+        ]
+      }
+    }
+  ]
+}

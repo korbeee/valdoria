@@ -1,0 +1,24 @@
+{
+  "operation": "animate",
+  "prompt": "A stationary claw swipe: raise the near front paw, extend it forward with claws, then return it to the ground. Keep this exact tiger and fixed camera. Keep the full face, paws and tail visible throughout; use the empty space around the tiger for the extended paw. No translation or zoom.",
+  "source": "spritefusion-refined-test/variation-2.png",
+  "outputs": [
+    {
+      "id": "5768607d-033b-43f3-824d-b95d5f3b777a",
+      "type": "animation",
+      "createdAt": "2026-09-30T03:09:49.439Z",
+      "updatedAt": "2026-09-30T03:09:49.439Z",
+      "prompt": "A stationary claw swipe: raise the near front paw, extend it forward with claws, then return it to the ground. Keep this exact tiger and fixed camera. Keep the full face, paws and tail visible throughout; use the empty space around the tiger for the extended paw. No translation or zoom.",
+      "width": 200,
+      "height": 100,
+      "assetUrl": "https://media.spritefusion.com/pixel-art-assets/08a402d5-b891-4aa2-9910-9d28d7173a61/5768607d-033b-43f3-824d-b95d5f3b777a/animation.webp?v=1790737789439",
+      "style": "animation",
+      "contentType": "image/webp",
+      "frameCount": 8,
+      "sourceImageUrl": "https://media.spritefusion.com/pixel-art-assets/08a402d5-b891-4aa2-9910-9d28d7173a61/5768607d-033b-43f3-824d-b95d5f3b777a/source.png?v=1790737789439",
+      "spritesheetUrl": "https://media.spritefusion.com/pixel-art-assets/08a402d5-b891-4aa2-9910-9d28d7173a61/5768607d-033b-43f3-824d-b95d5f3b777a/spritesheet.png?v=1790737789439",
+      "fps": 8
+    }
+  ],
+  "requestId": "req_bf4d5217-c059-4716-8180-78dd6ce1e489"
+}

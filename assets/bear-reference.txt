@@ -1,0 +1,9 @@
+Folha de sprites fornecida pelo usuário para o urso chefe.
+Original preservado em bear-reference.png, incluindo a caixa de créditos.
+Créditos que constam na folha:
+Bear from Naruto Shippuden: Saikyou Ninja Daikesshuu! Gekitou!! Naruto vs. Sasuke
+Ripped: FerranMartin
+Give credit if used.
+
+Integração: 28 poses recortadas, fundo azul transparente, escala inteira 2x.
+Não foram recriados desenhos nem alteradas as cores da folha.

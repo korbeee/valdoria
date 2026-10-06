@@ -1,0 +1,52 @@
+{
+  "requestId": "req_c7eb1b8d-08cf-43a6-a359-13dd33e981ac",
+  "operation": "edit",
+  "prompt": "Change this tiger into a full-body right-facing pounce pose for a side-scrolling game. The entire tiger must fit comfortably inside the image: leave at least eight transparent pixels of empty margin beyond the nose, tail tip, paws, ears, and back. Keep the tiger long and horizontal in the air, with front paws extended and hind legs tucked. Preserve the exact striped orange pixel-art style, face, muzzle, black line thickness and natural anatomy. No scenery, clothes, particles, or effects.",
+  "sourceAssetId": "be37218f-ca63-4550-bb78-1cfe4327f83f",
+  "outputs": [
+    {
+      "id": "63f053c2-d595-412e-9934-bc0951474bb1",
+      "type": "image",
+      "createdAt": "2026-09-30T02:59:12.593Z",
+      "updatedAt": "2026-09-30T02:59:12.593Z",
+      "prompt": "Change this tiger into a full-body right-facing pounce pose for a side-scrolling game. The entire tiger must fit comfortably inside the image: leave at least eight transparent pixels of empty margin beyond the nose, tail tip, paws, ears, and back. Keep the tiger long and horizontal in the air, with front paws extended and hind legs tucked. Preserve the exact striped orange pixel-art style, face, muzzle, black line thickness and natural anatomy. No scenery, clothes, particles, or effects.",
+      "width": 156,
+      "height": 64,
+      "assetUrl": "https://media.spritefusion.com/pixel-art-assets/08a402d5-b891-4aa2-9910-9d28d7173a61/63f053c2-d595-412e-9934-bc0951474bb1/image.png?v=1790737152593",
+      "style": "default",
+      "contentType": "image/png",
+      "batchId": "fbe02f9c-6d1d-412a-ab0c-22056f8ed251",
+      "batchIndex": 0,
+      "batchSize": 2,
+      "action": {
+        "kind": "edit",
+        "sourceImageAssetId": "be37218f-ca63-4550-bb78-1cfe4327f83f",
+        "sourceImageAssetIds": [
+          "be37218f-ca63-4550-bb78-1cfe4327f83f"
+        ]
+      }
+    },
+    {
+      "id": "a2894c68-9cd7-4daa-aedb-d4e224922eb7",
+      "type": "image",
+      "createdAt": "2026-09-30T02:59:13.603Z",
+      "updatedAt": "2026-09-30T02:59:13.603Z",
+      "prompt": "Change this tiger into a full-body right-facing pounce pose for a side-scrolling game. The entire tiger must fit comfortably inside the image: leave at least eight transparent pixels of empty margin beyond the nose, tail tip, paws, ears, and back. Keep the tiger long and horizontal in the air, with front paws extended and hind legs tucked. Preserve the exact striped orange pixel-art style, face, muzzle, black line thickness and natural anatomy. No scenery, clothes, particles, or effects.",
+      "width": 138,
+      "height": 51,
+      "assetUrl": "https://media.spritefusion.com/pixel-art-assets/08a402d5-b891-4aa2-9910-9d28d7173a61/a2894c68-9cd7-4daa-aedb-d4e224922eb7/image.png?v=1790737153603",
+      "style": "default",
+      "contentType": "image/png",
+      "batchId": "fbe02f9c-6d1d-412a-ab0c-22056f8ed251",
+      "batchIndex": 1,
+      "batchSize": 2,
+      "action": {
+        "kind": "edit",
+        "sourceImageAssetId": "be37218f-ca63-4550-bb78-1cfe4327f83f",
+        "sourceImageAssetIds": [
+          "be37218f-ca63-4550-bb78-1cfe4327f83f"
+        ]
+      }
+    }
+  ]
+}

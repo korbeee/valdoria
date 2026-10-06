@@ -1,0 +1,10 @@
+const {chromium}=require(process.env.PLAYWRIGHT_PATH || 'playwright');const fs=require('fs');
+(async()=>{const b=await chromium.launch({channel:'msedge',headless:true});try{const p=await b.newPage();const errors=[];p.on('pageerror',e=>errors.push(e.message));await p.addInitScript(()=>window.requestAnimationFrame=()=>1);await p.goto('http://localhost/jogo-teste/');await p.waitForFunction(()=>typeof game==='object');const url=await p.evaluate(()=>{
+const c=makeCanvas(1080,680),ctx=c.getContext('2d');ctx.imageSmoothingEnabled=false;ctx.fillStyle='#192127';ctx.fillRect(0,0,1080,680);ctx.fillStyle='#ecdfc5';ctx.font='18px monospace';ctx.fillText('BRAMIDO / PATRIARCA',24,30);
+[8,15,16,17].forEach((f,i)=>{ctx.drawImage(wildlifeSprite('bear',f).normal,24+i*260,45,204,162);});
+ctx.fillText('ESPÍRITO DO FILHOTE',24,245);for(let i=0;i<4;i++){ctx.save();ctx.translate(60+i*80,325);ctx.scale(3,3);drawCubSpirit(ctx,{cub:{x:0,y:-19,h:19,clock:i*.13,gait:i,vx:20,facing:1}});ctx.restore();}
+['ALPHA_CLAWS','SEISMIC_PAW','BOTTLED_ROAR'].forEach((id,i)=>{ctx.fillStyle='#ecdfc5';ctx.fillText(ITEM_DEFS[ITEM[id]].name,400+i*220,245);ctx.drawImage(renderer.tex.itemAtlas,ITEM[id]*T,0,T,T,410+i*220,260,64,64);});
+ctx.fillText('GARRA EQUIPADA',24,385);ctx.save();ctx.translate(90,440);ctx.scale(4,4);drawAlphaClawsHeld(ctx);ctx.restore();
+ctx.fillText('PATA SÍSMICA',330,385);seismicWaves.push({x:220,y:220,life:.52,dir:1});ctx.save();ctx.translate(-40,35);ctx.scale(2,2);drawSeismicWaves(ctx);ctx.restore();seismicWaves.length=0;
+ctx.fillText('RUGIDO ENGARRAFADO',700,385);bottledRoarWaves.push({x:855,y:520,age:.28,radius:150});drawBottledRoar(ctx);bottledRoarWaves.length=0;
+for(let f=0;f<20;f++){const a=wildlifeSprite('bear',f);if(!a.normal.width||!a.hurt.width)throw Error('bear frame');}return c.toDataURL();});fs.writeFileSync('tests/bear-art-updated.png',Buffer.from(url.split(',')[1],'base64'));if(errors.length)throw Error(errors.join('\n'));console.log('Gallery and 20 boss frames rendered without errors');}finally{await b.close();}})().catch(e=>{console.error(e);process.exitCode=1});

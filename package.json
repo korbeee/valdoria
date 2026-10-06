@@ -1,0 +1,13 @@
+{
+  "name": "valdoria",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Jogo de aventura e sobrevivência em mundo aberto 2D com visual pixel art",
+  "scripts": {
+    "check": "node tests/repository-check.cjs",
+    "test": "npm run check",
+    "server": "node server/server.js"
+  },
+  "engines": { "node": ">=18" },
+  "devDependencies": { "playwright": "1.62.1" }
+}

@@ -1,0 +1,24 @@
+{
+  "operation": "animate",
+  "prompt": "Idle loop in place of exactly this purple spider facing right. Subtle breathing of abdomen, alternating small movements of eight legs and fangs, eyes blink. Same size and silhouette, feet on ground, no camera motion, retain pixel art, keep all limbs inside canvas.",
+  "outputs": [
+    {
+      "id": "3c94f6cd-3f23-4d38-8af4-273437396b50",
+      "type": "animation",
+      "createdAt": "2026-10-01T00:44:30.541Z",
+      "updatedAt": "2026-10-01T00:44:30.541Z",
+      "prompt": "Idle loop in place of exactly this purple spider facing right. Subtle breathing of abdomen, alternating small movements of eight legs and fangs, eyes blink. Same size and silhouette, feet on ground, no camera motion, retain pixel art, keep all limbs inside canvas.",
+      "width": 192,
+      "height": 128,
+      "assetUrl": "https://media.spritefusion.com/pixel-art-assets/08a402d5-b891-4aa2-9910-9d28d7173a61/3c94f6cd-3f23-4d38-8af4-273437396b50/animation.webp?v=1790815470541",
+      "style": "animation",
+      "contentType": "image/webp",
+      "frameCount": 8,
+      "sourceImageUrl": "https://media.spritefusion.com/pixel-art-assets/08a402d5-b891-4aa2-9910-9d28d7173a61/3c94f6cd-3f23-4d38-8af4-273437396b50/source.png?v=1790815470541",
+      "spritesheetUrl": "https://media.spritefusion.com/pixel-art-assets/08a402d5-b891-4aa2-9910-9d28d7173a61/3c94f6cd-3f23-4d38-8af4-273437396b50/spritesheet.png?v=1790815470541",
+      "fps": 8,
+      "index": 0
+    }
+  ],
+  "requestId": "req_a796f5a3-28fc-490f-b26b-45921120d0a9"
+}

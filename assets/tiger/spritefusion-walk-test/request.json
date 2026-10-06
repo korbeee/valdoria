@@ -1,0 +1,20 @@
+{
+  "requestId": "f50a37b1-b26b-4d9b-a837-d1114b283bc3",
+  "operation": "animate",
+  "prompt": "Create a seamless, slow stalking walk cycle for this exact pixel-art tiger boss. Keep its horizontal side-facing body, orange and charcoal striped fur, expressive feline face, four grounded paws and long tail. Give every leg a distinct weight shift and contact pose, with a subtle tail sway and shoulder motion. No clothes, weapons, accessories, glow or new scenery. Preserve the detailed hand-drawn pixel clusters and the existing proportions.",
+  "sourceAssetId": "be37218f-ca63-4550-bb78-1cfe4327f83f",
+  "outputs": [
+    {
+      "index": 1,
+      "id": "f50a37b1-b26b-4d9b-a837-d1114b283bc3",
+      "assetUrl": "https://media.spritefusion.com/pixel-art-assets/08a402d5-b891-4aa2-9910-9d28d7173a61/f50a37b1-b26b-4d9b-a837-d1114b283bc3/animation.webp?v=1790735329520",
+      "spritesheetUrl": "https://media.spritefusion.com/pixel-art-assets/08a402d5-b891-4aa2-9910-9d28d7173a61/f50a37b1-b26b-4d9b-a837-d1114b283bc3/spritesheet.png?v=1790735329520",
+      "frameCount": 16,
+      "fps": 8,
+      "localPaths": {
+        "animation": "1-animation.webp",
+        "spritesheet": "1-spritesheet.png"
+      }
+    }
+  ]
+}

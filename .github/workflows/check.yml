@@ -1,0 +1,20 @@
+name: Verificar projeto
+on:
+  push:
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  scripts:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm run check
+      - name: Verificar PHP
+        run: |
+          php -l server/world-saves.php
+          php -l server/world-save-storage.php
+          php -l server/iniciar-servidor.php

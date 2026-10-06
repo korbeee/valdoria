@@ -1,0 +1,36 @@
+# Dependências e ferramentas instaladas neste computador
+node_modules/
+server/runtime/
+
+# Dados pessoais e mundos salvos
+server/data/*
+!server/data/.gitkeep
+*.valdoria
+*.valdoria.bak
+*.lock
+!package-lock.json
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Resultados e arquivos temporários dos testes
+tests/**/*.png
+tests/**/*.webm
+tests/**/*.log
+tests/**/*.sse
+tests/**/*.json
+!tests/bear-sheet-data.json
+tests/save-fixture-*/
+tests/save-performance-*/
+playwright-report/
+test-results/
+
+# Editor e sistema operacional
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+desktop.ini
+*.tmp

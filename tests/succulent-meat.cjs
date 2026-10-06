@@ -1,0 +1,27 @@
+const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
+const read=p=>fs.readFileSync(p,'utf8');
+const loot=read('js/bear-loot.js'),savanna=read('js/savanna.js');
+const ITEM={BONE:60,MEAT:16,COOKED_MEAT:31},defs={},art={};
+vm.runInNewContext(loot.slice(loot.indexOf('Object.assign(ITEM'),loot.indexOf('defItem(ITEM.ALPHA_CLAWS')),{ITEM,TILE:{},ITEM_ART:art,defItem:(id,d)=>defs[id]={place:null,...d}});
+const meat=ITEM.SUCCULENT_MEAT,d=defs[meat];assert.equal(d.bossItem,true);assert(!d.cura&&!d.ferramenta&&!d.place);assert(d.descricao.includes('Tigre da Savana'));assert(d.descricao.includes('(Q)'));
+const entries=vm.runInNewContext(loot.match(/const BEAR_LOOT = \[[^]*?\n\];/)[0]+';BEAR_LOOT',{ITEM});
+assert(entries.some(e=>e.item===meat&&e.chance===1&&e.min===1&&e.max===1),'Drop garantido de Bramido');
+assert(art[meat].pixels.every(r=>r.length===16));assert(art[meat].pixels.every(r=>[...r].every(c=>c==='.'||art[meat].cores[c])));
+const fn=n=>savanna.match(new RegExp('function '+n+'\\([^]*?\\n\\}'))[0];
+let refunded=0,overflow=0;
+const api=vm.runInNewContext(fn('checkTigerBait')+'\n'+fn('tigerGoHome')+';({checkTigerBait,tigerGoHome})',{ITEM,T:16,mobParticles(){},playSfx(){},tigerState(m,s){m.state=s;},dropItem(g,item,count,x,y){overflow+=count;assert.equal(x,g.player.cx);}});
+const m={cx:100,cy:70,y:50,h:40,w:64,den:{x:100,y:90},def:{hp:220}},g={drops:[],mobs:[],player:{cx:42,y:30},inventory:{add(item,count){assert.equal(item,meat);refunded+=count;return 0;}}};
+const drop=(item,age=1,x=100,count=1)=>({item,count,age,x,y:90});
+for(const item of [ITEM.MEAT,ITEM.COOKED_MEAT]){g.drops=[drop(item),drop(ITEM.BONE)];assert.equal(api.checkTigerBait(g,m),false);assert.equal(g.drops.length,2);}
+g.drops=[drop(meat,.2)];assert.equal(api.checkTigerBait(g,m),false);
+g.drops=[drop(meat,1,300)];assert.equal(api.checkTigerBait(g,m),false);
+g.drops=[drop(meat,1,100,2),drop(ITEM.BONE)];assert(api.checkTigerBait(g,m));assert.equal(g.drops[0].count,1);assert.equal(g.drops[1].count,1);assert(m.baitSpent);
+api.tigerGoHome(g,m);assert.equal(refunded,1);assert.equal(m.hp,220);assert.equal(m.state,'sleep');api.tigerGoHome(g,m);assert.equal(refunded,1,'Sem duplicar devolução');
+g.drops=[drop(meat)];assert(api.checkTigerBait(g,m));assert.equal(g.drops.length,0);g.inventory.add=()=>1;api.tigerGoHome(g,m);assert.equal(overflow,1,'Mochila cheia deixa a isca aos pés');
+const tooltip=read('js/inventory-ui.js').match(/  drawTooltip\(ctx,[^]*?\n  \}/)[0];
+const ui=vm.runInNewContext('({'+tooltip+'})',{ITEM_DEFS:defs,TILE:{TORCH:7},UIC:{textDim:'#888'},SALVAGE:{},maxStackOf:()=>20});
+let lines;ui.inv={count:()=>1};ui.drawTooltipBox=(ctx,name,rows)=>{lines=rows;};ui.drawTooltip({}, {item:meat},0,0,1);
+assert.equal(lines[0],'Item de boss');assert(!lines.includes('Material'));assert(lines.some(s=>typeof s==='string'&&s.includes('(Q)')));
+const cat=read('js/admin.js').match(/const categoryOf=([^;]+);/)[1];assert.equal(vm.runInNewContext(cat)(d),'boss');
+assert(read('js/item-actions.js').includes('d.age > DROP_LIFETIME && !ITEM_DEFS[d.item]?.bossItem'),'Isco de progressão não desaparece');
+console.log('Carne Suculenta: categoria, ícone, descrição, drop garantido, rejeição de iscas antigas, distância, consumo unitário e devolução sem duplicação verificados.');

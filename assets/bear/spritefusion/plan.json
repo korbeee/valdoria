@@ -1,0 +1,19 @@
+{
+  "status": "awaiting_sprite_fusion_credits",
+  "style": "Pixel art de urso marrom gigante, vista lateral para a direita, pelagem em grupos de pixels, contorno escuro e sombreado quente. Preservar identidade do Bramido, proporções constantes e espaço para todas as patas.",
+  "animations": [
+    {"name":"walk","frames":16},
+    {"name":"idle","frames":8},
+    {"name":"sleep","frames":8},
+    {"name":"wake","frames":8},
+    {"name":"paw","frames":8},
+    {"name":"charge","frames":8},
+    {"name":"swipe","frames":8},
+    {"name":"rear","frames":8},
+    {"name":"slam","frames":8},
+    {"name":"roar","frames":8},
+    {"name":"stun-seated","frames":8},
+    {"name":"recover","frames":8}
+  ],
+  "validation": ["Escala anatômica constante", "Patas apoiadas no chão", "Atordoamento sentado", "Margens sem cortes", "Todos os estados usam a nova arte", "Combate e drops preservados"]
+}

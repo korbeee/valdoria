@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="pt-BR"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Fauna da floresta</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#101a1b;color:#e6dec9;font:14px monospace;padding:24px}main{max-width:900px;margin:auto;border:3px solid #53615d;box-shadow:0 0 0 3px #080e10;background:#1c2928;padding:20px}h1{color:#edc67c;font-size:22px;margin:0 0 10px}p{line-height:1.6;color:#acbeb0}canvas{display:block;width:100%;image-rendering:pixelated;border:2px solid #081010;margin:20px 0;background:#203a34}nav{display:flex;gap:10px;flex-wrap:wrap}button{font:inherit;color:#e8d9b9;background:#30473c;border:2px solid #617765;padding:10px 14px;cursor:pointer}button.active{color:#ffd98b;border-color:#e3b666;background:#46523b}a{color:#e9c17d}details{margin-top:24px}details img{width:100%;image-rendering:pixelated;margin-top:12px;border:2px solid #101918}.names{display:flex;justify-content:space-around;color:#f0d59f}small{display:block;margin-top:18px;color:#90a897}
+</style>
+<main><h1>FAUNA DA FLORESTA</h1><p>Pelagem, galhadas, presas e detalhes em pixels. Confira os dois animais em movimento.</p><div class="names"><b>JAVALI</b><b>CERVO DA FLORESTA</b></div><canvas width="640" height="230" aria-label="Javali e cervo animados"></canvas><nav><button data-mode="walk" class="active">Caminhar</button><button data-mode="idle">Descansar</button><button data-mode="graze">Farejar / pastar</button><button data-mode="air">Salto</button><button id="turn">Virar ↔</button><button id="pause">Pausar</button></nav><small>Os sprites também estão aplicados no jogo e no bestiário.</small><details><summary>Comparar com a textura anterior</summary><p>Antes</p><img src="forest-fauna-before.png" alt="Texturas anteriores"><p>Agora</p><img src="forest-fauna-after.png?v=fur1" alt="Texturas atuais"></details><p><a href="../">Abrir o jogo</a></p></main>
+<script>
+const canvas=document.querySelector('canvas'),ctx=canvas.getContext('2d'),sheet=new Image();let mode='walk',facing=1,paused=false,clock=0,last=0;
+document.querySelectorAll('[data-mode]').forEach(b=>b.onclick=()=>{mode=b.dataset.mode;document.querySelectorAll('[data-mode]').forEach(x=>x.classList.toggle('active',x===b));});document.querySelector('#turn').onclick=()=>facing*=-1;document.querySelector('#pause').onclick=e=>{paused=!paused;e.target.textContent=paused?'Reproduzir':'Pausar';};
+function draw(time){if(!paused)clock+=Math.min(100,time-last)/1000;last=time;ctx.imageSmoothingEnabled=false;ctx.fillStyle='#213b35';ctx.fillRect(0,0,640,230);
+ for(let i=0;i<10;i++){const x=i*73-15;ctx.fillStyle=i%2?'#29483e':'#2b4c40';ctx.fillRect(x,0,13,183);ctx.fillRect(x-25,18+i%3*14,60,32);ctx.fillRect(x-12,55+i%3*10,42,40);}
+ ctx.fillStyle='#142823';ctx.fillRect(0,194,640,36);ctx.fillStyle='#66814a';ctx.fillRect(0,191,640,3);ctx.fillStyle='#849656';for(let x=0;x<640;x+=11)ctx.fillRect(x,188+(x%3),2,4);
+ const frame=mode==='walk'?Math.floor(clock*8)%8:mode==='graze'?10:mode==='air'?12+Math.floor(clock*2)%2:8+Math.floor(clock*1.5)%2;
+ if(sheet.complete&&sheet.naturalWidth)for(let row=0;row<2;row++){const x=row?455:170;ctx.fillStyle='#10211d';ctx.fillRect(x-55,193,110,4);ctx.save();ctx.translate(x,194);ctx.scale(facing*3,3);ctx.drawImage(sheet,frame*64,row*56,64,56,-32,-56,64,56);ctx.restore();}
+ requestAnimationFrame(draw);
+}sheet.onload=()=>requestAnimationFrame(draw);sheet.src='forest-fauna-sheet.png?v=fur1';
+</script></html>

@@ -1,0 +1,52 @@
+{
+  "requestId": "req_718c6e40-9f63-4523-8882-2a65623a883e",
+  "operation": "edit",
+  "prompt": "Change this exact tiger into a full-body right-facing sleeping tiger pose for a 2D side-scrolling game. Curl the body low on the ground with the head resting on the front paws, eyes closed, and tail wrapped beside the hind legs. Keep the same orange fur, charcoal stripes, cream muzzle, detailed pixel clusters, outline thickness and proportions from the source. Keep the full tiger visible with transparent margin. No scenery, clothes, objects, stars or effects.",
+  "sourceAssetId": "be37218f-ca63-4550-bb78-1cfe4327f83f",
+  "outputs": [
+    {
+      "id": "a2a4607b-e1c9-4570-84de-5030e039b870",
+      "type": "image",
+      "createdAt": "2026-09-30T02:48:25.049Z",
+      "updatedAt": "2026-09-30T02:48:25.049Z",
+      "prompt": "Change this exact tiger into a full-body right-facing sleeping tiger pose for a 2D side-scrolling game. Curl the body low on the ground with the head resting on the front paws, eyes closed, and tail wrapped beside the hind legs. Keep the same orange fur, charcoal stripes, cream muzzle, detailed pixel clusters, outline thickness and proportions from the source. Keep the full tiger visible with transparent margin. No scenery, clothes, objects, stars or effects.",
+      "width": 123,
+      "height": 58,
+      "assetUrl": "https://media.spritefusion.com/pixel-art-assets/08a402d5-b891-4aa2-9910-9d28d7173a61/a2a4607b-e1c9-4570-84de-5030e039b870/image.png?v=1790736505049",
+      "style": "default",
+      "contentType": "image/png",
+      "batchId": "04e967b0-27b2-434a-950e-8424529f42a2",
+      "batchIndex": 0,
+      "batchSize": 2,
+      "action": {
+        "kind": "edit",
+        "sourceImageAssetId": "be37218f-ca63-4550-bb78-1cfe4327f83f",
+        "sourceImageAssetIds": [
+          "be37218f-ca63-4550-bb78-1cfe4327f83f"
+        ]
+      }
+    },
+    {
+      "id": "3014ac4b-6100-49cd-af24-1efbe9a5ea89",
+      "type": "image",
+      "createdAt": "2026-09-30T02:48:26.092Z",
+      "updatedAt": "2026-09-30T02:48:26.092Z",
+      "prompt": "Change this exact tiger into a full-body right-facing sleeping tiger pose for a 2D side-scrolling game. Curl the body low on the ground with the head resting on the front paws, eyes closed, and tail wrapped beside the hind legs. Keep the same orange fur, charcoal stripes, cream muzzle, detailed pixel clusters, outline thickness and proportions from the source. Keep the full tiger visible with transparent margin. No scenery, clothes, objects, stars or effects.",
+      "width": 116,
+      "height": 39,
+      "assetUrl": "https://media.spritefusion.com/pixel-art-assets/08a402d5-b891-4aa2-9910-9d28d7173a61/3014ac4b-6100-49cd-af24-1efbe9a5ea89/image.png?v=1790736506092",
+      "style": "default",
+      "contentType": "image/png",
+      "batchId": "04e967b0-27b2-434a-950e-8424529f42a2",
+      "batchIndex": 1,
+      "batchSize": 2,
+      "action": {
+        "kind": "edit",
+        "sourceImageAssetId": "be37218f-ca63-4550-bb78-1cfe4327f83f",
+        "sourceImageAssetIds": [
+          "be37218f-ca63-4550-bb78-1cfe4327f83f"
+        ]
+      }
+    }
+  ]
+}

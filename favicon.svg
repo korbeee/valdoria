@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" shape-rendering="crispEdges">
+  <title>Valdoria</title>
+  <path fill="#192b29" d="M4 0h24v2h2v2h2v24h-2v2h-2v2H4v-2H2v-2H0V4h2V2h2z"/>
+  <path fill="#65432d" d="M5 11h22v14h-3v3H8v-3H5z"/>
+  <path fill="#947047" d="M5 11h22v4H5zm3 6h4v3H8zm15 0h4v3h-4z"/>
+  <path fill="#3d652f" d="M4 8h24v5H4z"/>
+  <path fill="#8cb94a" d="M4 8h24v2H4zm3-3h2v3H7zm15 1h2v2h-2z"/>
+  <path fill="#d2da79" d="M5 8h7v1H5zm14 0h8v1h-8z"/>
+  <path fill="#192b29" d="M10 15h9v2h3v8h-3v3h-9z"/>
+  <path fill="#edb954" d="M10 14h3v6h2v3h2v-3h2v-6h3v7h-2v3h-2v3h-4v-3h-2v-3h-2z"/>
+  <path fill="#78c8c6" d="M24 20h2v2h2v4h-2v3h-2v-3h-2v-4h2z"/>
+  <path fill="#d4eee2" d="M24 21h1v5h-1z"/>
+  <path fill="#f4d88a" d="M16 2h2v2h2v2h-2v2h-2V6h-2V4h2z"/>
+</svg>

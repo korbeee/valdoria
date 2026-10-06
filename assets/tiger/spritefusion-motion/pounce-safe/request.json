@@ -1,0 +1,12 @@
+{
+  "requestId": "6b7fe1a3-49ed-45a0-9f41-4bd1d63990fa",
+  "operation": "animate",
+  "sourceAssetId": "63f053c2-d595-412e-9934-bc0951474bb1",
+  "outputs": [{
+    "index": 1,
+    "id": "6b7fe1a3-49ed-45a0-9f41-4bd1d63990fa",
+    "assetUrl": "https://media.spritefusion.com/pixel-art-assets/08a402d5-b891-4aa2-9910-9d28d7173a61/6b7fe1a3-49ed-45a0-9f41-4bd1d63990fa/animation.webp?v=1790737298117",
+    "spritesheetUrl": "https://media.spritefusion.com/pixel-art-assets/08a402d5-b891-4aa2-9910-9d28d7173a61/6b7fe1a3-49ed-45a0-9f41-4bd1d63990fa/spritesheet.png?v=1790737298117",
+    "localPaths": { "animation": "1-animation.webp", "spritesheet": "1-spritesheet.png" }
+  }]
+}

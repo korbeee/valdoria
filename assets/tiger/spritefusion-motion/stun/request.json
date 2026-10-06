@@ -1,0 +1,28 @@
+{
+  "requestId": "req_8ce92252-9c0f-49e4-9402-59e3513393bb",
+  "operation": "animate",
+  "prompt": "An eight-frame right-facing stunned pose loop for this exact tiger boss after hitting a wall. The tiger is seated low on the ground with its back legs folded under its body and front paws planted, never floating. Its head slowly sways, eyes are dazed, and three small amber stars circle above the head. Preserve the detailed striped fur, expressive feline face, cream muzzle, tail and natural anatomy. No new scenery, clothes, weapons, particles or glow.",
+  "sourceAssetId": "be37218f-ca63-4550-bb78-1cfe4327f83f",
+  "outputs": [
+    {
+      "id": "076c374c-c762-4132-b7f1-54fc7d09ab5e",
+      "type": "animation",
+      "createdAt": "2026-09-30T02:33:13.004Z",
+      "updatedAt": "2026-09-30T02:33:13.004Z",
+      "prompt": "An eight-frame right-facing stunned pose loop for this exact tiger boss after hitting a wall. The tiger is seated low on the ground with its back legs folded under its body and front paws planted, never floating. Its head slowly sways, eyes are dazed, and three small amber stars circle above the head. Preserve the detailed striped fur, expressive feline face, cream muzzle, tail and natural anatomy. No new scenery, clothes, weapons, particles or glow.",
+      "width": 126,
+      "height": 63,
+      "assetUrl": "https://media.spritefusion.com/pixel-art-assets/08a402d5-b891-4aa2-9910-9d28d7173a61/076c374c-c762-4132-b7f1-54fc7d09ab5e/animation.webp?v=1790735593004",
+      "style": "animation",
+      "contentType": "image/webp",
+      "frameCount": 8,
+      "sourceImageUrl": "https://media.spritefusion.com/pixel-art-assets/08a402d5-b891-4aa2-9910-9d28d7173a61/076c374c-c762-4132-b7f1-54fc7d09ab5e/source.png?v=1790735593004",
+      "spritesheetUrl": "https://media.spritefusion.com/pixel-art-assets/08a402d5-b891-4aa2-9910-9d28d7173a61/076c374c-c762-4132-b7f1-54fc7d09ab5e/spritesheet.png?v=1790735593004",
+      "fps": 8,
+      "sourceImageAssetId": "be37218f-ca63-4550-bb78-1cfe4327f83f",
+      "sourceImageAssetIds": [
+        "be37218f-ca63-4550-bb78-1cfe4327f83f"
+      ]
+    }
+  ]
+}

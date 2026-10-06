@@ -1,0 +1,24 @@
+{
+  "operation": "animate",
+  "prompt": "Threatening screech animation of exactly this purple spider in place facing right. Raise front legs high, rear body slightly, spread green mandibles and shake front legs, then lower to initial stance. Preserve eight legs, same abdomen and ivory markings, same size and native pixel art. No camera motion, entire creature inside frame with margins.",
+  "outputs": [
+    {
+      "id": "be4a96e2-cbfc-4b46-bf87-23ea5e64abf2",
+      "type": "animation",
+      "createdAt": "2026-10-01T00:47:24.416Z",
+      "updatedAt": "2026-10-01T00:47:24.416Z",
+      "prompt": "Threatening screech animation of exactly this purple spider in place facing right. Raise front legs high, rear body slightly, spread green mandibles and shake front legs, then lower to initial stance. Preserve eight legs, same abdomen and ivory markings, same size and native pixel art. No camera motion, entire creature inside frame with margins.",
+      "width": 192,
+      "height": 128,
+      "assetUrl": "https://media.spritefusion.com/pixel-art-assets/08a402d5-b891-4aa2-9910-9d28d7173a61/be4a96e2-cbfc-4b46-bf87-23ea5e64abf2/animation.webp?v=1790815644416",
+      "style": "animation",
+      "contentType": "image/webp",
+      "frameCount": 8,
+      "sourceImageUrl": "https://media.spritefusion.com/pixel-art-assets/08a402d5-b891-4aa2-9910-9d28d7173a61/be4a96e2-cbfc-4b46-bf87-23ea5e64abf2/source.png?v=1790815644416",
+      "spritesheetUrl": "https://media.spritefusion.com/pixel-art-assets/08a402d5-b891-4aa2-9910-9d28d7173a61/be4a96e2-cbfc-4b46-bf87-23ea5e64abf2/spritesheet.png?v=1790815644416",
+      "fps": 8,
+      "index": 0
+    }
+  ],
+  "requestId": "req_099578bc-6a18-4a27-8312-4a475b0e330a"
+}

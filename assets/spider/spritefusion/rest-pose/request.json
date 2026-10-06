@@ -1,0 +1,45 @@
+{
+  "operation": "edit",
+  "prompt": "Change ONLY the pose of this exact purple spider into exhausted resting pose after hitting the floor. Lower its abdomen and head all the way to the ground, bend and splay all eight legs flat and low sideways, tuck green fangs near its head, eyes half closed. IMPORTANT very low flattened resting silhouette, no longer standing tall on legs. Keep exactly the same anatomical abdomen size, ivory crescent markings, palette and native pixel style. Entire spider inside canvas, transparent background.",
+  "outputs": [
+    {
+      "id": "e1e1a320-63c2-4446-9ad5-001c38c78d08",
+      "type": "image",
+      "createdAt": "2026-10-01T00:48:26.589Z",
+      "updatedAt": "2026-10-01T00:48:26.589Z",
+      "prompt": "Change ONLY the pose of this exact purple spider into exhausted resting pose after hitting the floor. Lower its abdomen and head all the way to the ground, bend and splay all eight legs flat and low sideways, tuck green fangs near its head, eyes half closed. IMPORTANT very low flattened resting silhouette, no longer standing tall on legs. Keep exactly the same anatomical abdomen size, ivory crescent markings, palette and native pixel style. Entire spider inside canvas, transparent background.",
+      "width": 101,
+      "height": 66,
+      "assetUrl": "https://media.spritefusion.com/pixel-art-assets/08a402d5-b891-4aa2-9910-9d28d7173a61/e1e1a320-63c2-4446-9ad5-001c38c78d08/image.png?v=1790815706589",
+      "style": "default",
+      "contentType": "image/png",
+      "batchId": "f47d1671-428a-4cb8-8759-3d285616eb88",
+      "batchIndex": 0,
+      "batchSize": 2,
+      "action": {
+        "kind": "edit"
+      },
+      "index": 0
+    },
+    {
+      "id": "eea12e4b-fb62-4ce8-87ec-010b4e37bb4f",
+      "type": "image",
+      "createdAt": "2026-10-01T00:48:27.355Z",
+      "updatedAt": "2026-10-01T00:48:27.355Z",
+      "prompt": "Change ONLY the pose of this exact purple spider into exhausted resting pose after hitting the floor. Lower its abdomen and head all the way to the ground, bend and splay all eight legs flat and low sideways, tuck green fangs near its head, eyes half closed. IMPORTANT very low flattened resting silhouette, no longer standing tall on legs. Keep exactly the same anatomical abdomen size, ivory crescent markings, palette and native pixel style. Entire spider inside canvas, transparent background.",
+      "width": 107,
+      "height": 50,
+      "assetUrl": "https://media.spritefusion.com/pixel-art-assets/08a402d5-b891-4aa2-9910-9d28d7173a61/eea12e4b-fb62-4ce8-87ec-010b4e37bb4f/image.png?v=1790815707355",
+      "style": "default",
+      "contentType": "image/png",
+      "batchId": "f47d1671-428a-4cb8-8759-3d285616eb88",
+      "batchIndex": 1,
+      "batchSize": 2,
+      "action": {
+        "kind": "edit"
+      },
+      "index": 1
+    }
+  ],
+  "requestId": "req_705cff9c-fd0b-4ab4-91e1-eb0bd2e7103e"
+}

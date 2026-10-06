@@ -1,0 +1,301 @@
+{
+  "W": 192,
+  "H": 80,
+  "sources": {
+    "walk": [
+      "spritefusion-walk-test/1-spritesheet.png",
+      16,
+      0.9,
+      72
+    ],
+    "idle": [
+      "spritefusion-motion/idle-complete/1-spritesheet.png",
+      8,
+      0.9,
+      109
+    ],
+    "swipe": [
+      "spritefusion-motion/swipe-complete/1-spritesheet.png",
+      8,
+      0.9,
+      109
+    ],
+    "crouch": [
+      "spritefusion-motion/pounce/1-spritesheet.png",
+      8,
+      0.9,
+      72
+    ],
+    "leap": [
+      "spritefusion-motion/pounce-safe/1-spritesheet.png",
+      8,
+      0.78,
+      90
+    ],
+    "sleep": [
+      "spritefusion-motion/sleep-loop/1-spritesheet.png",
+      8,
+      0.65,
+      65
+    ],
+    "roar": [
+      "spritefusion-edits/roar/1.png",
+      1,
+      0.9,
+      72
+    ],
+    "stun": [
+      "spritefusion-edits/stun-grounded/2.png",
+      1,
+      0.45,
+      130
+    ]
+  },
+  "frames": [
+    {
+      "name": "walk",
+      "sourceFrame": 0,
+      "scale": 0.9
+    },
+    {
+      "name": "walk",
+      "sourceFrame": 1,
+      "scale": 0.9
+    },
+    {
+      "name": "walk",
+      "sourceFrame": 2,
+      "scale": 0.9
+    },
+    {
+      "name": "walk",
+      "sourceFrame": 3,
+      "scale": 0.9
+    },
+    {
+      "name": "walk",
+      "sourceFrame": 4,
+      "scale": 0.9
+    },
+    {
+      "name": "walk",
+      "sourceFrame": 5,
+      "scale": 0.9
+    },
+    {
+      "name": "walk",
+      "sourceFrame": 6,
+      "scale": 0.9
+    },
+    {
+      "name": "walk",
+      "sourceFrame": 7,
+      "scale": 0.9
+    },
+    {
+      "name": "walk",
+      "sourceFrame": 8,
+      "scale": 0.9
+    },
+    {
+      "name": "walk",
+      "sourceFrame": 9,
+      "scale": 0.9
+    },
+    {
+      "name": "walk",
+      "sourceFrame": 10,
+      "scale": 0.9
+    },
+    {
+      "name": "walk",
+      "sourceFrame": 11,
+      "scale": 0.9
+    },
+    {
+      "name": "walk",
+      "sourceFrame": 12,
+      "scale": 0.9
+    },
+    {
+      "name": "walk",
+      "sourceFrame": 13,
+      "scale": 0.9
+    },
+    {
+      "name": "walk",
+      "sourceFrame": 14,
+      "scale": 0.9
+    },
+    {
+      "name": "walk",
+      "sourceFrame": 15,
+      "scale": 0.9
+    },
+    {
+      "name": "idle",
+      "sourceFrame": 0,
+      "scale": 0.9
+    },
+    {
+      "name": "idle",
+      "sourceFrame": 2,
+      "scale": 0.9
+    },
+    {
+      "name": "idle",
+      "sourceFrame": 4,
+      "scale": 0.9
+    },
+    {
+      "name": "idle",
+      "sourceFrame": 6,
+      "scale": 0.9
+    },
+    {
+      "name": "roar",
+      "sourceFrame": 0,
+      "scale": 0.9
+    },
+    {
+      "name": "crouch",
+      "sourceFrame": 0,
+      "scale": 0.9
+    },
+    {
+      "name": "crouch",
+      "sourceFrame": 1,
+      "scale": 0.9
+    },
+    {
+      "name": "crouch",
+      "sourceFrame": 2,
+      "scale": 0.9
+    },
+    {
+      "name": "leap",
+      "sourceFrame": 0,
+      "scale": 0.78
+    },
+    {
+      "name": "leap",
+      "sourceFrame": 1,
+      "scale": 0.78
+    },
+    {
+      "name": "leap",
+      "sourceFrame": 2,
+      "scale": 0.78
+    },
+    {
+      "name": "leap",
+      "sourceFrame": 6,
+      "scale": 0.78
+    },
+    {
+      "name": "leap",
+      "sourceFrame": 7,
+      "scale": 0.78
+    },
+    {
+      "name": "sleep",
+      "sourceFrame": 0,
+      "scale": 0.65
+    },
+    {
+      "name": "sleep",
+      "sourceFrame": 1,
+      "scale": 0.65
+    },
+    {
+      "name": "sleep",
+      "sourceFrame": 2,
+      "scale": 0.65
+    },
+    {
+      "name": "sleep",
+      "sourceFrame": 3,
+      "scale": 0.65
+    },
+    {
+      "name": "sleep",
+      "sourceFrame": 4,
+      "scale": 0.65
+    },
+    {
+      "name": "sleep",
+      "sourceFrame": 5,
+      "scale": 0.65
+    },
+    {
+      "name": "sleep",
+      "sourceFrame": 6,
+      "scale": 0.65
+    },
+    {
+      "name": "sleep",
+      "sourceFrame": 7,
+      "scale": 0.65
+    },
+    {
+      "name": "swipe",
+      "sourceFrame": 0,
+      "scale": 0.9
+    },
+    {
+      "name": "swipe",
+      "sourceFrame": 1,
+      "scale": 0.9
+    },
+    {
+      "name": "swipe",
+      "sourceFrame": 2,
+      "scale": 0.9
+    },
+    {
+      "name": "swipe",
+      "sourceFrame": 3,
+      "scale": 0.9
+    },
+    {
+      "name": "swipe",
+      "sourceFrame": 4,
+      "scale": 0.9
+    },
+    {
+      "name": "swipe",
+      "sourceFrame": 5,
+      "scale": 0.9
+    },
+    {
+      "name": "swipe",
+      "sourceFrame": 6,
+      "scale": 0.9
+    },
+    {
+      "name": "swipe",
+      "sourceFrame": 7,
+      "scale": 0.9
+    },
+    {
+      "name": "stun",
+      "sourceFrame": 0,
+      "scale": 0.45
+    },
+    {
+      "name": "stun",
+      "sourceFrame": 0,
+      "scale": 0.45
+    },
+    {
+      "name": "stun",
+      "sourceFrame": 0,
+      "scale": 0.45
+    },
+    {
+      "name": "stun",
+      "sourceFrame": 0,
+      "scale": 0.45
+    }
+  ]
+}
