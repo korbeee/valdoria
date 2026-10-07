@@ -50,17 +50,36 @@
 
 // ---------------------------------------------------------------- Zebra (savana)
 {
-  const base = [[150, 152, 164], [196, 198, 208], [230, 232, 240], [252, 252, 254]];
-  const ink = [[14, 14, 20], [40, 40, 52]];
+  const base = [[133,141,145],[183,190,192],[222,229,226],[250,251,241]];
+  const ink = [[24,29,32],[46,52,54]];
   // listras curvas que acompanham a barriga e somem perto dela; faixas finas nas patas e cabeça listrada
-  const stripes = (dx, dy, nx, ny, idx) => (ny < 0.6 && Math.sin(dx * 0.74 + ny * ny * 2.2 + Math.sin(dy * 0.5) * 0.5) > 0.2 ? ink[idx < 2 ? 0 : 1] : null);
-  const faceStripes = (dx, dy, nx, ny, idx) => (Math.sin(dx * 1.1 + dy * 0.2) > 0.35 ? ink[0] : (nx > 0.5 && dy > 0 ? [60, 52, 56] : null));
-  const legs = { fore: { L1: 9.5, L2: 9, w1: 4, w2: 3, pal: base, hoof: [30, 26, 30], paw: 2, kneeDir: -1, bands: ink[0] }, hind: { L1: 10.5, L2: 9.5, w1: 4.4, w2: 3, pal: base, hoof: [30, 26, 30], paw: 2, kneeDir: 1, bands: ink[0] } };
-  const head = { style: 'hoofed', skull: [5.6, 4.9], snout: { len: 9.6, h: 3.5, tipH: 2.9, drop: 1.6, dy: 0.4 }, ears: { style: 'point', h: 5.6, w: 3.6, dx: 0.5, inner: [236, 170, 176], pal: [[26, 24, 32], [150, 152, 164], [236, 238, 244]] }, eye: { dx: 2.6, dy: -0.4 }, nose: [34, 28, 32], pattern: faceStripes, pal: base };
-  const mane = (s, r) => { for (let i = 0; i < 11; i++) { const t = i / 10, x = lerp(r.hx - 2.5, r.sh[0] - 3, t) - 1, y = lerp(r.hy - 5.2, r.sh[1] - 5.6, t); seg(s, x, y, x - 1.2, y - 3.2, 2.2, ink[0]); seg(s, x + 0.6, y - 0.4, x - 0.2, y - 2.4, 1, ink[1]); } };
+  const stripes = (dx,dy,nx,ny,idx) => ny<.72&&Math.sin(dx*.78+dy*.18+nx*ny*.9)>.05?ink[idx<2?0:1]:null;
+  const faceStripes = (dx,dy,nx,ny) => nx>.55&&ny>.05?[73,78,78]:ny<.5&&Math.sin(dx*1.25+dy*.5)>.5?ink[1]:null;
+  // Patas afiladas; as faixas são recortadas dentro da pele, sem barras nas laterais.
+  const zebraLeg=(s,hx,hy,fx,fy,o,far)=>{
+    const [kx,ky]=ik(hx,hy,fx,fy,o.L1,o.L2,o.kneeDir);
+    const segment=(ax,ay,bx,by,startWidth,endWidth,phase)=>{
+      const dx=bx-ax,dy=by-ay,length=Math.max(.01,Math.hypot(dx,dy)),nx=-dy/length,ny=dx/length;
+      frPoly(s,[[ax+nx*startWidth/2,ay+ny*startWidth/2],[bx+nx*endWidth/2,by+ny*endWidth/2],[bx-nx*endWidth/2,by-ny*endWidth/2],[ax-nx*startWidth/2,ay-ny*startWidth/2]],(x,y)=>{
+        const along=((x+.5-ax)*dx+(y+.5-ay)*dy)/length,across=(x+.5-ax)*nx+(y+.5-ay)*ny;
+        if(along>1&&along<length-1&&(Math.round(along)+phase)%4===1)return far?ink[1]:ink[0];
+        return base[far?0:across>.3?1:across<-.3?3:2];
+      });
+    };
+    const mx=lerp(hx,kx,.55),my=lerp(hy,ky,.55);
+    segment(hx,hy,mx,my,o.w1,o.w1*.78,0);
+    segment(mx,my,kx,ky,o.w1*.78,2.5,2);
+    shadeBall(s,kx,ky,1.4,1.4,()=>base[far?0:2]);
+    segment(kx,ky,fx,fy-1,2.4,1.7,2);
+    frPoly(s,[[fx-1,fy-2],[fx+1,fy-2],[fx+2,fy],[fx-1,fy]],()=>ink[far?0:1]);
+    s.set(Math.round(fx),Math.round(fy-2),base[far?0:1]);
+  };
+  const legs = { fore: { L1: 10.2, L2: 10, w1: 5.4, w2: 2.4, pal: base, hoof: ink[0], paw: 2, kneeDir: 1, paint:zebraLeg }, hind: { L1: 10.5, L2: 10.2, w1: 7.4, w2: 2.4, pal: base, hoof: ink[0], paw: 2, kneeDir: -1, paint:zebraLeg } };
+  const head = { style: 'hoofed', skull: [5.2,4.7], snout: { len: 7.2, h: 3, tipH: 2.4, drop: 2, dy: .4 }, ears: { style: 'point', h: 5.4, w: 4.2, dx: .2, gap:2, inner:[103,111,110], pal:[ink[0],base[1],base[3]] }, eye: { dx: 2.6, dy: -.4 }, nose: ink[0], pattern: faceStripes, pal: base };
+  const mane = (s,r) => {for(let i=0;i<11;i++){const t=i/10,x=lerp(r.hx-3,r.sh[0]-3,t),y=lerp(r.hy-4.7,r.sh[1]-5.6,t);seg(s,x,y,x-1,y-2,1,ink[0]);if(i%3===0)s.set(Math.round(x),Math.round(y-1),base[1]);}};
   const P = () => ({
-    ground: 51, cx: 28, cy: 27.5, rx: 15.8, ry: 8.6, pal: base, seed: 31, belly: 0.14, legs, stride: 14, lift: 5, gait: 'walk', bob: 1, pattern: stripes,
-    head, neck: [9, -9.5], neckThick: 0.9, neckPattern: stripes,
+    ground: 51, cx: 28, cy: 27.5, rx: 15.8, ry: 8.6, pal: base, seed: 31, belly: 0.14, legs, stride: 12, lift: 4.4, gait: 'walk', bob: 1, pattern: stripes,
+    head, neck: [7.2, -8.5], neckThick: .75, neckPattern: stripes,
     tail: frTail('thin', [[26, 26, 32], [70, 68, 78], [140, 140, 150]], { len: 15, w: 2.4, drop: 8, swing: 3.5, tip: [20, 18, 24], rings: [236, 236, 244] }),
     pose: (I) => (I.idle === 2 ? { headDy: 18, headDx: 5, tilt: 0.95 } : I.idle === 3 ? { earTwitch: true, eyeClosed: true } : I.idle === 1 ? { headDy: -1 } : {}),
   });
@@ -70,26 +89,27 @@
 
 // ---------------------------------------------------------------- Jaguar (selva, hostil)
 {
-  const pal = [[74, 36, 10], [156, 88, 24], [212, 134, 42], [238, 176, 76], [252, 216, 136]];
-  const dark = [38, 20, 6];
+  const pal = [[104,72,38],[155,110,51],[196,148,72],[222,183,109],[242,218,167]];
+  const dark = [49,35,23],cream=[[169,144,103],[208,189,145],[240,223,184],[255,242,209]];
   // rosetas grandes: anel escuro (quebrado aqui e ali) em volta de um miolo mais fechado; barriga lisa e clara
   const rosette = (dx, dy, nx, ny, idx) => {
-    if (ny > 0.55) return null;
-    const gx = Math.floor((dx + 60) / 8), gy = Math.floor((dy + 40) / 6), jx = (hash2(gx, gy, 9) - 0.5) * 3, jy = (hash2(gy, gx, 8) - 0.5) * 2;
-    const d = Math.hypot(dx - (gx * 8 - 60 + 4 + jx), (dy - (gy * 6 - 40 + 3 + jy)) * 1.35);
-    if (hash2(gx, gy, 5) < 0.22) return null;
-    if (d > 1.9 && d < 2.9 && hash2(gx, gy, 3) > 0.18) return dark;
-    return d <= 1.9 ? pal[1] : null;
+    if(ny>.55)return cream[clamp(idx-1,0,3)];
+    const gx=Math.floor((dx+60)/6),gy=Math.floor((dy+40)/5),jx=(hash2(gx,gy,9)-.5)*1.5,jy=(hash2(gy,gx,8)-.5);
+    const d=Math.hypot(dx-(gx*6-60+3+jx),(dy-(gy*5-40+2.5+jy))*1.15);
+    if(hash2(gx,gy,5)<.12)return null;
+    if(d>1.25&&d<2.1)return dark;
+    return d<.55?dark:d<=1.25?pal[2]:null;
   };
-  const legs = { fore: { L1: 4.2, L2: 4, w1: 4.6, w2: 3.8, pal, hoof: [70, 40, 16], paw: 3 }, hind: { L1: 4.6, L2: 4.2, w1: 5, w2: 3.8, pal, hoof: [70, 40, 16], paw: 3 } };
-  const head = { style: 'feline', skull: [6.4, 5.7], snout: { len: 3, h: 3.5, tipH: 2.6, wide: 1.25, drop: 1.2 }, ears: { style: 'round', h: 3.6, w: 4, dx: 0.5, inner: [236, 196, 160], pal: [[40, 22, 8], [168, 98, 30], [250, 228, 180]] }, eye: { dx: 2.8, dy: -0.5, iris: [252, 214, 40] }, nose: [220, 130, 130], whisk: true, mouth: [190, 70, 80], pattern: (dx, dy, nx, ny, idx) => (ny > 0.45 ? [240, 220, 180] : (hash2(dx, dy, 6) > 0.9 && ny < 0.2 ? dark : null)) };
+  const legSpots=(x,y,far)=>!far&&y<6&&(Math.round(x)+Math.round(y)*3+30)%7===0?dark:null;
+  const legs = { fore: { L1: 5.2, L2: 5.2, w1: 3.6, w2: 2.4, pal, hoof:cream[1], paw: 3, kneeDir:1, paint:frPawLeg,legPattern:legSpots }, hind: { L1: 5.7, L2: 5.3, w1: 4.2, w2: 2.5, pal, hoof:cream[1], paw: 3, kneeDir:-1, paint:frPawLeg,legPattern:legSpots } };
+  const head = { style: 'feline', skull: [5.4,4.7], snout: { len: 2.2, h: 2.5, tipH: 1.9, wide: 1.15, drop: 1 }, ears: { style: 'round', h: 3, w: 3.6, dx: -.8, gap:2, inner:[185,155,112], pal:[dark,pal[2],cream[2]] }, eye: { dx: 2.8, dy: -.5, iris:[37,44,27] }, nose: [66,41,30], whisk: true, mouth: [166,68,72], pattern:(dx,dy,nx,ny)=>ny>.3?cream[2]:ny<.05&&(dx*3+dy+30)%7===0?dark:null };
   const P = () => ({
-    ground: 31, cx: 22, cy: 20, rx: 10.6, ry: 7, pal, seed: 81, belly: 0.2, legs, stride: 9.5, lift: 3.6, gait: 'trot', bob: 1, pattern: rosette, sq: 2.2,
-    head, neck: [6.6, -1.4], neckThick: 0.95, neckPattern: rosette, tail: frTail('thin', pal, { len: 17, w: 3.2, drop: 6, swing: 3.4, tip: dark, rings: dark }),
+    ground: 35, cx: 29, cy: 23, rx: 14, ry: 6, pal, seed: 81, belly: .2, fur:.3, legs, stride: 10, lift: 3.6, gait: 'trot', bob: 1, pattern: rosette, sq: 2.2,
+    head, neck: [4.2, -2.4], neckThick: .85, neckPattern: rosette, tail: frTail('thin', pal, { len: 15, w: 2.4, drop: 5, swing: 2.8, tip: dark, rings: dark }),
     pose: (I, f) => (f === 14 ? { bodyDy: 3, headDx: -1, headDy: 3, open: 2.4 } : f === 15 ? { bodyDy: -1, headDx: 3, open: 4.2, tilt: -0.12 } : I.idle === 2 ? { headDy: 3, headDx: 3, tilt: 0.5 } : I.idle === 3 ? { earTwitch: true, eyeClosed: true } : {}),
   });
   frSpecies('jaguar', { name: 'Jaguar', biome: BIOME.JUNGLE, hostile: true, hp: 30, speed: 70, damage: 9, w: 30, h: 17, drops: [[ITEM.LEATHER, 2, 3], [ITEM.MEAT, 1, 3], [ITEM.TIGER_CLAW, 0, 1, 0.2]], color: '#d49430', pad: 12 },
-    faunaHook({ paint: (s, p, f) => frQuad(s, f, P(), f === 15 ? 12 : f === 14 ? 8 : f), sight: 12, chase: 1.25, gaitDiv: 3.6, atk: { kind: 'lunge', reach: 6.5 * T, windup: 0.45, recover: 0.55, cd: 2, windFrame: 14, strikeFrame: 15, dash: 3.5, hop: 210 } }), [50, 34], pal, 'tiger');
+    faunaHook({ paint: (s,p,f)=>{const r=frQuad(s,f,P(),f===15?12:f===14?8:f);if(r.I.idle!==3){seg(s,Math.round(r.hx+1),Math.round(r.hy-1),Math.round(r.hx+3),Math.round(r.hy-1),1,dark);s.set(Math.round(r.hx+3),Math.round(r.hy),[37,44,27]);}}, outline:[48,34,24], sight: 12, chase: 1.25, gaitDiv: 3.6, atk: { kind: 'lunge', reach: 6.5 * T, windup: 0.45, recover: 0.55, cd: 2, windFrame: 14, strikeFrame: 15, dash: 3.5, hop: 210 } }), [60, 38], pal, 'tiger');
 }
 
 // ---------------------------------------------------------------- Sapo (pântano)

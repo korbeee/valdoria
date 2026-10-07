@@ -130,7 +130,7 @@ function trySpawnPig(game, minDist, offScreen = false) {
 }
 
 function mobAt(game, wx, wy) {
-  for (const m of game.mobs) if (m !== game.mount && m.containsPoint(wx, wy, 3)) return m;
+  for (const m of game.mobs) if (!m.dead && m !== game.mount && m.containsPoint(wx, wy, 3)) return m;
   return null;
 }
 
@@ -148,9 +148,11 @@ function mobParticles(game, mob, n, color) {
 }
 
 function killMob(game, mob) {
+  if (mob.carcass) return;
   Bestiary.recordKill(mob); // js/bestiary.js
   mobParticles(game, mob, 16, 'rgb(200,60,70)');
   mobSfx(mob, 'Death');
+  if (mob.kind === 'shark') { makeSharkCarcass(game, mob); return; }
   // drops: [[item, mínimo, máximo], ...]; cai no chão e o jogador pega passando por cima
   const drops = mob.def?.drops || [mob.def ? [mob.def.drop, 1, 1] : [PIG.drop.item, PIG.drop.min, PIG.drop.max]];
   // O quarto número é a chance de sair aquela peça (1 = sempre), usado pelo espólio do urso
@@ -184,6 +186,8 @@ function updateMobs(game, dt) {
   for (let i = game.mobs.length - 1; i >= 0; i--) {
     const m = game.mobs[i];
     if (m.despawn) continue;
+    if (m.kind === 'shark' && m.dead && !m.carcass) killMob(game, m);
+    if (m.carcass) { updateSharkCarcass(game, m, dt); continue; }
     if(game.boss?.summonerCreated&&game.boss!==m&&m.boss&&m.sleeping)continue;
     // O chefe fica parado no covil enquanto o jogador está longe (se estava lutando, volta a dormir).
     // Preso no casulo ('cocoon') ou enterrado ('buried') ele já descansa em casa: o reset vale uma
@@ -200,7 +204,7 @@ function updateMobs(game, dt) {
     maulWallCheck(game, m, dt); // Marreta de Carapaça: bateu na parede, atordoa (js/beetle-loot.js)
     if (m.dead) {
       killMob(game, m);
-      game.mobs.splice(i, 1);
+      if (!m.carcass) game.mobs.splice(i, 1);
     }
   }
   game.mobs = game.mobs.filter(m => !m.despawn);

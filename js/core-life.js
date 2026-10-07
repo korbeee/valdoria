@@ -398,7 +398,8 @@ function paintSentinela(s, pal, f) {
   const ty = 13 - bob + (slam ? 2 : 0);
   // pernas: grevas grossas com joelheira e pé de placa
   for (const [side, off] of [[-1, 0], [1, Math.PI]]) {
-    const q = ph + off, step = walk ? Math.sin(q) * 3 : 0, lift = walk ? Math.max(0, -Math.cos(q)) * 2 : 0;
+    // O pé apoiado recua em relação ao corpo; no ar ele retorna para a frente.
+    const q = ph + off, step = walk ? -Math.sin(q) * 3 : 0, lift = walk ? Math.max(0, -Math.cos(q)) * 2 : 0;
     const hx = cx + side * 3.5, fx = cx + side * 3.5 + step, fy = 38 - lift, kx = (hx + fx) / 2 + side * 0.5, ky = (ty + 17 + fy) / 2;
     limb(s, hx, ty + 16, kx, ky, 4, side < 0 ? [iron[0], iron[1], iron[1]] : [iron[0], iron[1], iron[2]]);
     limb(s, kx, ky, fx, fy - 2, 4, side < 0 ? [B.ol, B.dk, B.dk] : [B.ol, B.md, B.lt]);

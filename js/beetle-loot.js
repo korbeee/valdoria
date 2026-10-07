@@ -141,6 +141,7 @@ function updateShield(g, dt, rightPressed) {
   const rule = ITEM_DEFS[ITEM.DIGGER_SHIELD].escudo, p = g.player;
   const fKey = input.down('KeyF'), fEdge = fKey && !g._shieldF;
   g._shieldF = fKey;
+  if (carriedShark(g) || cleaningShark(g)) { g.block = null; return; }
   if (g.block) {
     g.block.t += dt;
     if (g.block.t >= rule.tempo) { g.block = null; g.blockReady = (g.clock || 0) + rule.espera; }

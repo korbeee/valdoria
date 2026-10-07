@@ -104,7 +104,7 @@ const WorldSaves={
   this.game=g;
   this.migration=this.request('?action=migrate',{method:'POST',headers:{'X-Valdoria-Save':'1'}}).then(r=>r.json()).catch(e=>{this.migrationError=e.message;});
   this.refresh();
-  this.timer=setInterval(()=>{if(this.active&&this.activeWorld===g.world&&!this.loading&&!this.pending&&!(typeof NET!=='undefined'&&NET.guest))this.save(false).catch(()=>{});},this.autosaveInterval);
+  this.timer=setInterval(()=>{if(this.active&&this.activeWorld===g.world&&!this.loading&&!this.pending&&!this.editingWorld&&!(typeof NET!=='undefined'&&NET.guest))this.save(false).catch(()=>{});},this.autosaveInterval);
   window.addEventListener('beforeunload',e=>{if(this.active&&this.activeWorld===g.world&&Date.now()-this.lastSaved>10000){e.preventDefault();e.returnValue='';}});
   this.ensureWorker();
   this.createSaveUI();
@@ -198,15 +198,64 @@ const WorldSaves={
  },
  async showList(){Menu.go('saved-worlds');this.status('Carregando seus mundos…');await this.refresh();this.renderList();},
  renderList(){
-  const list=Menu.root.querySelector('#saved-world-list');if(!list)return;list.replaceChildren();
+  const list=Menu.root.querySelector('#saved-world-list');if(!list||this.editingWorld&&list.querySelector('.saved-world-editor'))return;list.replaceChildren();
   for(const meta of this.worlds){
+   const row=document.createElement('article');row.className='saved-world-row';row.dataset.worldId=meta.id;
    const card=document.createElement('button');card.className='btn saved-world';card.dataset.action='load-world';card.dataset.worldId=meta.id;
    const name=document.createElement('strong');name.textContent=meta.name;card.append(name);
    const detail=document.createElement('small');detail.textContent=`${({pequeno:'Pequeno',medio:'Médio',grande:'Grande'})[meta.size]||meta.w+' × '+meta.h} · Dia ${meta.day||1} · ${meta.playerName||'Aventureiro'}`;card.append(detail);
-   const date=document.createElement('small');date.className='save-date';date.textContent='Último salvamento: '+new Date(meta.savedAt).toLocaleString('pt-BR');card.append(date);list.append(card);
+   const date=document.createElement('small');date.className='save-date';date.textContent='Último salvamento: '+new Date(meta.savedAt).toLocaleString('pt-BR');card.append(date);row.append(card);
+   const actions=document.createElement('div');actions.className='saved-world-actions';
+   for(const [action,label]of [['rename-world','Renomear'],['delete-world','Excluir']]){
+    const button=document.createElement('button');button.type='button';button.className='btn world-tool'+(action==='delete-world'?' world-danger':'');button.dataset.action=action;button.dataset.worldId=meta.id;button.title=label;button.setAttribute('aria-label',label+' '+meta.name);
+    const pixels=action==='rename-world'?['........##..','.......####.','......##+##.','.....##+##..','....##+##...','...##+##....','..##+##.....','.##+##......','.####.......','.###........','.##.........','............']:['....####....','....#..#....','.##########.','............','..#......#..','..#.#..#.#..','..#.#..#.#..','..#.#..#.#..','..#.#..#.#..','..#......#..','..########..','............'];
+    button.innerHTML='<svg viewBox="0 0 12 12" width="24" height="24" fill="currentColor" shape-rendering="crispEdges" aria-hidden="true">'+pixels.flatMap((line,y)=>[...line].map((pixel,x)=>pixel==='.'?'':`<rect x="${x}" y="${y}" width="1" height="1"${pixel==='+'?' opacity=".4"':''}/>`)).join('')+'</svg>';actions.append(button);
+   }
+   row.append(actions);list.append(row);
   }
   this.status(this.error||(!this.worlds.length?'Nenhum mundo salvo ainda. Comece uma nova aventura.':'Escolha um mundo para continuar.'),!!this.error);
   Menu.root.querySelector('#saved-world-folder').textContent=this.directory;
+ },
+ async editWorld(id,kind){
+  if(this.loading)return;if(this.pending)await this.pending.catch(()=>{});
+  const meta=this.worlds.find(w=>w.id===id),row=[...Menu.root.querySelectorAll('.saved-world-row')].find(r=>r.dataset.worldId===id);
+  if(!meta||!row)return;
+  this.editingWorld=id;
+  Menu.root.querySelectorAll('.saved-world-editor,.world-edit-backdrop').forEach(e=>e.remove());
+  const backdrop=document.createElement('div');backdrop.className='world-edit-backdrop';row.append(backdrop);
+  const form=document.createElement('form');form.className='panel saved-world-editor';form.setAttribute('role','dialog');form.setAttribute('aria-modal','true');form.setAttribute('aria-labelledby','world-edit-title');
+  const head=document.createElement('header');head.className='panel-head';const heading=document.createElement('div');head.append(heading);form.append(head);
+  const title=document.createElement('h2');title.id='world-edit-title';title.textContent=kind==='rename'?'Renomear mundo':'Excluir mundo?';heading.append(title);
+  const caption=document.createElement('p');caption.className='world-edit-name';caption.textContent=meta.name;heading.append(caption);
+  const body=document.createElement('div');body.className='world-edit-body';form.append(body);
+  const label=document.createElement('label');label.htmlFor='world-edit-name';label.textContent=kind==='rename'?'Nome do mundo':'';if(kind==='rename')body.append(label);
+  let field=null;
+  if(kind==='rename'){
+   field=document.createElement('input');field.id='world-edit-name';field.type='text';field.maxLength=48;field.required=true;field.value=meta.name;field.setAttribute('aria-label','Novo nome do mundo');body.append(field);
+  }else{
+   const warning=document.createElement('p');warning.textContent='O mundo e todo o progresso salvo serão apagados. Esta ação não pode ser desfeita.';body.append(warning);
+  }
+  const error=document.createElement('p');error.className='save-error';error.setAttribute('role','alert');error.hidden=true;body.append(error);
+  const actions=document.createElement('footer');actions.className='panel-foot saved-world-actions';
+  const confirm=document.createElement('button');confirm.type='submit';confirm.className='btn'+(kind==='delete'?' world-danger':'');confirm.textContent=kind==='rename'?'Salvar nome':'Excluir mundo';
+  const cancel=document.createElement('button');cancel.type='button';cancel.className='btn world-edit-cancel';cancel.textContent='Cancelar';cancel.onclick=()=>{if(this.loading)return;this.editingWorld=null;form.remove();backdrop.remove();row.querySelector('[data-action="'+(kind==='rename'?'rename-world':'delete-world')+'"]').focus();};backdrop.onclick=()=>cancel.click();
+  confirm.classList.add('world-edit-confirm');actions.append(cancel,confirm);form.append(actions);row.append(form);
+  form.onkeydown=e=>{if(e.code==='Escape'){e.preventDefault();e.stopPropagation();cancel.click();}};
+  form.onsubmit=async e=>{
+   e.preventDefault();if(this.loading)return;
+   const name=field?.value.trim();if(kind==='rename'&&!name){error.textContent='Digite um nome para o mundo.';error.hidden=false;field.focus();return;}
+   this.loading=true;error.hidden=true;confirm.disabled=cancel.disabled=true;if(field)field.disabled=true;
+   try{
+    if(this.pending)await this.pending;
+    const response=await this.request('?action='+kind+'&id='+encodeURIComponent(id),{method:kind==='rename'?'POST':'DELETE',headers:{'Content-Type':'application/json','X-Valdoria-Save':'1'},...(kind==='rename'?{body:JSON.stringify({name})}:{})});
+    const data=await response.json();
+    if(this.active?.id===id){if(kind==='rename')this.active={...this.active,...data.meta};else{this.active=null;this.activeWorld=null;this.lastSaved=0;}}
+    this.editingWorld=null;await this.refresh();this.status(kind==='rename'?'Nome do mundo atualizado.':'Mundo excluído.');
+    const next=Menu.root.querySelector('[data-action="'+(kind==='rename'?'rename-world':'load-world')+'"]')||Menu.root.querySelector('[data-screen="saved-worlds"] [data-action="back"]');next?.focus({preventScroll:true});
+   }catch(e){error.textContent=e.message;error.hidden=false;}
+   finally{this.loading=false;confirm.disabled=cancel.disabled=false;if(field)field.disabled=false;}
+  };
+  if(field){field.focus();field.select();}else cancel.focus();
  },
  async begin(name){
   if(this.pending)await this.pending.catch(()=>{});
@@ -278,7 +327,10 @@ const WorldSaves={
   applyLook(data.look,renderer);saveLook(data.look);Bestiary.data=data.bestiary;Bestiary.save();
   g.inventoryUI.trash=data.trash||null;
   for(const stack of [data.held,...(data.bench||[])])if(stack){const left=g.inventory.add(stack.item,stack.count);if(left)dropItem(g,stack.item,left,player.cx,player.cy,0);}
-  for(const m of g.mobs||[]){m.fishingOwner=null;delete m.netId;delete m.netMirror;delete m.netBuf;}
+  for(const m of g.mobs||[]){
+   m.fishingOwner=null;delete m.netId;delete m.netMirror;delete m.netBuf;
+   if(m.carcass){cancelSharkCleaning(m);if(m.sharkCarrier!=='local')m.sharkCarrier=null;}
+  }
   for(const f of g.fallingTrees||[])if(f.canopy){f.canopy=canopyFor(f.tx,next.biomeAt(f.tx),next.seed);if(f.canopy.organic)f.trunkArt=organicTrunkFor(f.canopy,f.n*T,false);}
   fishingWorld=next;
   for(const s of data.fishing||[]){s.owner=fishingOwner();s.pullUntil=-1;if(s.fish)s.fish.fishingOwner=s.owner;fishingSessions.set(s.owner,s);fishingPublish(s);}

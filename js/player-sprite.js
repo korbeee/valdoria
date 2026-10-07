@@ -52,6 +52,22 @@ const HEAD = [
   '.......ss.......',
 ];
 
+// Tronco de costas (escada): a mesma jaqueta vista por trás, com a costura no meio e o cinto
+const TORSO_BACK = [
+  '..kJJJJJJk..',
+  '.kJJJJJJJJk.',
+  'kJJJJjjJJJJk',
+  'kJJJJjjJJJJk',
+  'kJJJJjjJJJJk',
+  'kjJJJjjJJJjk',
+  'kjjJJjjJJjjk',
+  'kjjjJjjJjjjk',
+  '.kjjjjjjjjk.',
+  '.kttttttttk.',
+  '.kjjjjjjjjk.',
+  '.kjjjkkjjjk.',
+  '.kjjk..kjjk.',
+];
 const TORSO = [
   '......kJJk......',
   '.....kGJJLOk....',
@@ -127,14 +143,18 @@ const basePose = (extra = {}) => Object.assign(
    hy:5, hx:6, ty:22, tx:6, sy:26, hipY:35, hips:[14,18], shoulders:[18,14]}, extra);
 addPoses('idle', [basePose(),basePose({breath:1}),basePose({breath:1,hair:1}),basePose({blink:true})]);
 // ---------- Gags de quem fica parado (js/player.js escolhe uma de vez em quando) ----------
-// Dancinha de discoteca: pula no ritmo e alterna o braço da frente apontando para o alto (à frente
-// do rosto, sem cobri-lo) com o braço de trás subindo atrás da cabeça; pés trocando e boca cantando
-addPoses('gagDance', Array.from({ length: 8 }, (_, i) => {
-  const frontUp = i % 4 < 2, step = i % 4;
+// Dancinha de discoteca em 12 quadros (3 movimentos de 4 batidas): o corpo desce dobrando os joelhos na batida e sobe nas pontas, balança o
+// quadril de um lado para o outro e os pés abrem e fecham. Movimentos: (1) dedo de discoteca com o braço da frente para o alto e a mão de trás na
+// cintura; (2) troca: o braço de trás sobe e o da frente vai à cintura; (3) os dois braços abertos em V no alto, batendo no ritmo.
+addPoses('gagDance', Array.from({ length: 12 }, (_, i) => {
+  const move = Math.floor(i / 4), s = i % 4, down = s % 2 === 0;       // down = batida (agachadinha), senão ponta (esticado)
+  const hands = move === 0 ? [11, 24] : move === 1 ? [5, 17] : [3, 25];
+  const handLift = move === 0 ? [3, down ? 22 : 27] : move === 1 ? [down ? 18 : 23, 4] : [down ? 20 : 25, down ? 22 : 27];
+  const elbowLift = move === 0 ? [-2, 13] : move === 1 ? [12, -1] : [10, 12];
   return basePose({
-    bob: i % 2, lean: step < 2 ? 1 : -1, hair: i % 2,
-    hands: [frontUp ? 12 : 3, frontUp ? 26 : 16], handLift: [frontUp ? 2 : 18, frontUp ? 18 : 3], elbowLift: [frontUp ? 2 : 9, frontUp ? 8 : 2],
-    feet: step < 2 ? [14, 19] : [15, 18], lift: [step === 1 ? 3 : 0, step === 3 ? 3 : 0], mouthOpen: step === 0 ? 1 : 0,
+    ik: 5, bob: down ? 3 : 0, lean: [1, 0, -1, 0][s], hair: down ? 0 : 1, mouthOpen: s === 0 ? 1 : 0,
+    hands, handLift, elbowLift,
+    feet: down ? [12, 20] : [15, 18], lift: [s === 1 ? 3 : 0, s === 3 ? 3 : 0],
   });
 }));
 // Bocejo: braços subindo e espreguiçada nas pontas dos pés com a boca bem aberta. O braço da frente
@@ -226,6 +246,14 @@ addPoses('crawlWiggle', [wiggle(0, 0), wiggle(-1, 1), wiggle(0, 0), wiggle(1, 1)
 addPoses('crawlSneeze', [crawlPose({ hx: 13, hy: 17, blink: true }), crawlPose({ hx: 14, hy: 22, blink: true, torsoDx: -1 })]);
 // Golpe e arco engatinhando: o braço de trás apoiado no chão, o da frente desenhado pela arma
 addPoses('crawlAttack', [crawlPose({ noFrontArm: true, hands: [19, 22] })]);
+// Ajoelhado de lado (limpando a caça): joelho de trás no chão, pé da frente firme com o joelho erguido, tronco quase
+// de pé e inclinado para a frente; o braço de trás descansa sobre o joelho e o da frente fica por conta de quem
+// desenha a ação (js/shark-harvest.js). Quadros: 0 neutro, 1 inclinado (serrando), 2 afundando o golpe.
+const kneelPose = (extra = {}) => squatPose(Object.assign({
+  tallTorso: true, hy: 10, hx: 7, ty: 26, tx: 5, sy: 30, hipY: 39, hips: [9, 12], shoulders: [14, 17],
+  kneeB: [9, 43], kneeF: [19, 35], feet: [3, 20], elbows: [[15, 36], [19, 37]], hands: [19, 22], handLift: [5, 5], noFrontArm: true,
+}, extra));
+addPoses('kneel', [kneelPose(), kneelPose({ lean: 1, hx: 8, hy: 11 }), kneelPose({ lean: 2, hx: 9, hy: 13, bob: 1 })]);
 // Transição curta entre em pé e engatinhando (descendo: 0 → 1; levantando: 1 → 0): primeiro os
 // joelhos dobram, depois ele agacha com as mãos indo para os joelhos, e aí apoia as mãos no chão.
 // Os pés não saem do lugar.
@@ -278,6 +306,34 @@ addPoses('flightSide',Array.from({length:8},(_,i)=>basePose({
  feet:[13,17],lift:[i===2||i===3?1:0,0],hips:[14,17],hands:[12,17],handLift:[0,1],
  elbows:[[11,31],[17,31]],noHead:true,
 })));
+// Escada (js/player.js: climbing): o personagem fica DE COSTAS, agarrado aos dois trilhos (flag `back`: tronco e cabeça traseiros,
+// pernas lado a lado). Subindo: as mãos se alternam de degrau em degrau, os pés respondem em cruz e o corpo balança para o lado
+// da mão que puxa. Descendo: mãos mais baixas, escorregando, pés tateando. Parado: pendurado, respirando.
+// Quadros: climb 0-7 (subindo), climbDown 0-7 (descendo), climbHold 0-1 (pendurado).
+const backPose = (extra = {}) => basePose(Object.assign({
+  back: true, noBackArm: true, noFrontArm: true, tx: 9, hx: 7, hips: [12, 19],
+}, extra));
+// Tudo alinhado ao eixo do corpo (sem inclinar o tronco): só as mãos mudam de altura (poucos pixels, os dois braços sempre esticados
+// para cima) e os pés sobem um de cada vez, com o joelho saindo um pixel para fora.
+const backLegs = (f0, f1) => ({ lift: [f0, f1] });
+addPoses('climb', Array.from({ length: 8 }, (_, i) => {
+  const a = (i / 8) * Math.PI * 2, u0 = Math.sin(a), hl = [Math.round(21 + 4 * u0), Math.round(21 - 4 * u0)];
+  return backPose(Object.assign({
+    hair: i % 2, bob: Math.abs(Math.sin(a * 2)) > 0.7 ? 1 : 0,
+    handLift: hl, elbowLift: [Math.round(hl[0] * 0.6), Math.round(hl[1] * 0.6)],
+  }, backLegs(Math.round(Math.max(0, Math.sin(a + Math.PI / 2)) * 4), Math.round(Math.max(0, -Math.sin(a + Math.PI / 2)) * 4))));
+}));
+addPoses('climbDown', Array.from({ length: 8 }, (_, i) => {
+  const a = -(i / 8) * Math.PI * 2, u0 = Math.sin(a), hl = [Math.round(18 + 3 * u0), Math.round(18 - 3 * u0)];
+  return backPose(Object.assign({
+    hair: i % 2, bob: i % 4 < 2 ? 0 : 1,
+    handLift: hl, elbowLift: [Math.round(hl[0] * 0.55), Math.round(hl[1] * 0.55)],
+  }, backLegs(Math.round(Math.max(0, Math.sin(a + Math.PI / 2)) * 3), Math.round(Math.max(0, -Math.sin(a + Math.PI / 2)) * 3))));
+}));
+addPoses('climbHold', [
+  backPose(Object.assign({ handLift: [23, 21], elbowLift: [12, 11] }, backLegs(0, 0))),
+  backPose(Object.assign({ bob: 1, handLift: [23, 21], elbowLift: [12, 11] }, backLegs(0, 0))),
+]);
 const CROUCH_BLEND = 0.14; // segundos da transição ao engatinhar/levantar (2 quadros de crouchIn)
 const PLAYER_ATTACK_FRAME=PLAYER_ANIMS.attack;
 const PLAYER_ATTACK_AIR_FRAME=PLAYER_ANIMS.attack+3;
@@ -347,8 +403,29 @@ const HOOD = ['.kjj..', 'kjJJj.', 'kJGJj.', 'kJJJj.', 'kjJJjk', '.kjJJk', '..kkk
 function buildPlayerSprite(frames=PLAYER_POSES.length) {
   const atlas=makeCanvas(frames*32,48), c=atlas.getContext('2d');
   c.imageSmoothingEnabled=false;
-  const look=currentLook(), top=TOP_STYLES[look.top], shorts=look.legs===1; // roupa do criador (js/character.js)
+  const look=currentLook(), look0=look, top=TOP_STYLES[look.top], shorts=look.legs===1; // roupa do criador (js/character.js)
   const head=playerHeadParts(), heads=[head.open,head.blink];
+  // cabeça de costas: pega só o lado de trás da cabeça de perfil (cabelo, boné, chapéu) e espelha, então fica simétrica e a aba do
+  // boné e o nariz não aparecem. O rosto vira cabelo com brilho no topo e uma leve textura; só a nuca (últimas linhas) mostra a pele.
+  const hb=composeHead(look0), headBack=(()=>{
+    const rows=hb.rows, cx=7+hb.ox, W=Math.max(...rows.map(r=>r.length),cx*2+1), hairTop=Math.max(0,rows.findIndex(r=>/[HhrR]/.test(r)));
+    const out=rows.map((row,y)=>{
+      let r='';
+      for(let i=0;i<W;i++){
+        const src=i<=cx?i:2*cx-i;
+        let ch=src>=cx-5&&src<row.length?row[src]:'.';   // só 5 colunas de cada lado do centro: de costas a cabeça não pode ser mais larga que o tronco
+        if('SsLKWPm'.includes(ch)&&y<rows.length-3){
+          const edge=src<=cx-4;
+          const d=Math.abs(src-cx);
+          ch=y===hairTop+1&&d<=2?'R':y<hairTop+3?'r':edge||y>rows.length-7?'H':(d+y)%4===0?'r':(d<=1&&y<hairTop+7)?'R':'h'; // topo claro, miolo com textura, redemoinho no centro, laterais escuras
+        }
+        r+=ch;
+      }
+      return r;
+    });
+    return pixelPart(out);
+  })();
+  const torsoBack=pixelPart(TORSO_BACK,TOP_STYLES[look0.top].remap);
   const torso=playerTorsoPart(TORSO), torsoCrouch=playerTorsoPart(TORSO_CROUCH), torsoCrawl=playerTorsoPart(TORSO_CRAWL);
   const coat=top.coat&&pixelPart(COAT_TAIL), scout=PLAYER_OUTFIT==='referenceScout'&&!PLAYER_LOOK_PREVIEW, bib=PLAYER_OUTFIT==='moustacheShirt'&&!PLAYER_LOOK_PREVIEW&&pixelPart(PLUMBER_BIB), hood=top.hood&&pixelPart(HOOD);
   PLAYER_POSES.slice(0,frames).forEach((p,i)=>{
@@ -412,8 +489,32 @@ function buildPlayerSprite(frames=PLAYER_POSES.length) {
       limb([[p.hips[k],p.hipY+p.bob],[kx,y],[ank+2,y]],back?PLAYER_PALETTE.n:PLAYER_PALETTE.N,back?null:PLAYER_PALETTE.v,back?PLAYER_PALETTE.s:PLAYER_PALETTE.S);
       boot(ank-1,y-2,3,3,back);
     }
+    // Perna de costas: reta, 3 px de largura com contorno; levantada, o joelho sai um pouco para fora e a bota sobe. Bota centrada na perna.
+    function backLeg(k) {
+      const side=k?1:-1, hipX=p.hips[k], hipY=p.hipY+p.bob, lift=p.lift[k], fy=43-lift, fx=hipX+(lift>0?side:0);
+      const ky=Math.round((hipY+fy)/2), kx=hipX+(lift>0?side*2:0), shade=k?PLAYER_PALETTE.N:PLAYER_PALETTE.n;
+      line(hipX,hipY,kx,ky,5,PLAYER_OUTLINE);line(kx,ky,fx,fy,5,PLAYER_OUTLINE);
+      line(hipX,hipY,kx,ky,3,shade);line(kx,ky,fx,fy,3,shade);
+      c.fillStyle=rgb(PLAYER_OUTLINE);c.fillRect(x+fx-3,fy-1,7,6);
+      c.fillStyle=rgb(k?PLAYER_PALETTE.X:PLAYER_PALETTE.x);c.fillRect(x+fx-2,fy,5,4);
+      c.fillStyle=rgb(PLAYER_PALETTE.z);c.fillRect(x+fx-2,fy,5,1);
+      c.fillStyle=rgb(PLAYER_PALETTE.q);c.fillRect(x+fx-2,fy+3,5,1);
+    }
+    // Braço de costas (desenhado antes do tronco e da cabeça): ombro → cotovelo aberto ao lado da cabeça → mão no degrau, acima da cabeça; mão de 3x3 com contorno
+    function backArm(k) {
+      const side=k?1:-1, sx=k?20:11, sy0=p.sy+2+p.bob, hx=k?22:9, hy=p.sy+10+p.bob-p.handLift[k], ex=Math.round((sx+hx)/2), ey=Math.round((sy0+hy)/2);   // braço curto e reto, quase vertical, rente à cabeça
+      const up=k?PLAYER_PALETTE.J:PLAYER_PALETTE.j, fore=k?PLAYER_PALETTE.j:PLAYER_PALETTE.k;
+      line(sx,sy0,ex,ey,5,PLAYER_OUTLINE);line(ex,ey,hx,hy,5,PLAYER_OUTLINE);
+      line(sx,sy0,ex,ey,3,up);line(ex,ey,hx,hy,3,fore);
+      c.fillStyle=rgb(PLAYER_OUTLINE);c.fillRect(x+hx-2,hy-4,5,5);
+      c.fillStyle=playerHandRgb();c.fillRect(x+hx-1,hy-3,3,3);
+    }
     if(!p.noBackArm)arm(true);
-    if(p.crawl){
+    if(p.back){ // de costas (escada): pernas retas lado a lado, tronco traseiro e braços esticados pelos trilhos
+      backArm(0);backArm(1); // os braços esticam para a frente dele (para os degraus): de costas, ficam ATRÁS do tronco e da cabeça, só as pontas aparecem
+      backLeg(0);backLeg(1);
+      c.drawImage(torsoBack,x+p.tx+p.lean,p.ty+p.bob);
+    } else if(p.crawl){
       crawlLeg(true);
       c.drawImage(torsoCrawl,x+p.tx+p.lean+(p.torsoDx||0),p.ty+p.bob); // torsoDx: o quadril rebola sem mexer a cabeça
       crawlLeg(false);
@@ -432,9 +533,9 @@ function buildPlayerSprite(frames=PLAYER_POSES.length) {
     }
     if(scout)drawScoutMantle(c,x,p);
     // Breathing changes the collar/chest; feet and shoulders retain their anchors.
-    if(hood&&!p.crawl)c.drawImage(hood,x+p.tx+p.lean-1,p.ty+p.bob-8); // capuz caído nas costas, atrás da cabeça
-    if(p.breath&&!scout){c.fillStyle=rgb(PLAYER_PALETTE.L);c.fillRect(x+17,p.ty+2+p.bob,2,1);}
-    if(!p.noHead)c.drawImage(heads[p.blink?1:0],x+p.hx+p.lean-head.ox,p.hy+p.bob-head.oy);
+    if(hood&&!p.crawl&&!p.back)c.drawImage(hood,x+p.tx+p.lean-1,p.ty+p.bob-8); // capuz caído nas costas, atrás da cabeça
+    if(p.breath&&!scout&&!p.back){c.fillStyle=rgb(PLAYER_PALETTE.L);c.fillRect(x+17,p.ty+2+p.bob,2,1);}
+    if(!p.noHead)c.drawImage(p.back?headBack:heads[p.blink?1:0],x+p.hx+p.lean-head.ox,p.hy+p.bob-head.oy);
     if(p.hair&&head.tuft){c.fillStyle=rgb(PLAYER_PALETTE.r);c.fillRect(x+p.hx+p.lean-head.ox+head.tuft[0],p.hy+p.bob-head.oy+head.tuft[1],2,1);}
     // Língua de fora (engatinhando feito cachorrinho): sai da boca e balança
     // Boca aberta (cantando, bocejando, levando susto): 1 = pequena, 2 = bocejo bem aberto
@@ -467,6 +568,10 @@ function playerFrame(p) {
     }
     return PLAYER_ANIMS.crawl+Math.floor(p.anim/2.5)%6; // engatinhando: mão e joelho opostos juntos
   }
+  if(p.climbing&&!p.swimming){ // na escada: sobe puxando, desce escorregando, parado fica pendurado
+    if(Math.abs(p.vy)<5)return PLAYER_ANIMS.climbHold+(Math.floor((p.visualTime||0)*1.6)%2);
+    return (p.vy<0?PLAYER_ANIMS.climb:PLAYER_ANIMS.climbDown)+(Math.floor(p.climbPhase||0)%8+8)%8;
+  }
   // Nadando: braçada quando está indo para algum lado, boiando parado quando não (js/water.js)
   if(p.swimming&&!p.onGround)return p.swimStroking?PLAYER_ANIMS.swim+Math.floor(p.swimAnim||0)%8:PLAYER_ANIMS.tread+Math.floor((p.visualTime||0)*5)%6;
   if(p.onGround&&(p.crouchAge??1)<CROUCH_BLEND)return PLAYER_ANIMS.crouchIn+(p.crouchAge<CROUCH_BLEND/2?1:0); // levantando: o contrário
@@ -491,7 +596,7 @@ function playerAttackFrame(p,s) {
 // Quadro da gag em andamento (p.gag = { kind, t, dur }, controlada por js/player.js)
 function gagFrame(p) {
   const g = p.gag, k = g.t / g.dur, A = PLAYER_ANIMS;
-  if (g.kind === 'dance') return A.gagDance + Math.floor(g.t * 9) % 8;
+  if (g.kind === 'dance') return A.gagDance + Math.floor(g.t * 10) % 12;
   if (g.kind === 'yawn') return A.gagYawn + [0, 1, 1, 2, 2, 1, 3][Math.min(6, Math.floor(k * 7))];
   if (g.kind === 'scratch') return A.gagScratch + Math.floor(g.t * 10) % 4;
   return A.gagDoze + (k > 0.88 ? 2 : Math.floor(g.t * 0.8) % 2);

@@ -2,7 +2,8 @@
 
 const GRAVITY = 1500;
 const MAX_FALL = 900; // < 60 * T para não atravessar tiles
-const WALK_SPEED = 170;
+const WALK_SPEED = 170;          // velocidade de corrida (Shift) e base de várias mecânicas
+const WALK_FRACTION = 0.62;      // andando (sem Shift): ~105 px/s, abaixo do limite em que o jogo troca para a animação de corrida
 const JUMP_SPEED = 520;
 const CLIMB_SPEED = 110; // px/s subindo ou descendo uma escada
 const PLAYER_H = 42;     // altura em pé
@@ -215,9 +216,14 @@ class Player extends Body {
     const candidate=!this.onGround&&!this.crouching&&(input.down('ShiftLeft')||input.down('ShiftRight'))?equippedFlight(game):null;
     const flightGear=candidate&&(candidate.rule.jet?(this.jetFuel>0||game.inventory.count(ITEM.FLIGHT_FUEL)>0):candidate.rule.time>(this.flightUsed||0))?candidate:null;
     const topSpeed = flightGear?Math.max(WALK_SPEED,flightGear.rule.horizontal*1.22):WALK_SPEED * (this.crouching ? 0.35 : this.onGround&&referenceHas(game,'sprint')?1.25:1); // engatinhando é devagar
+    // Anda por padrão; Shift corre (a velocidade de corrida é a de antes). No ar mantém o embalo que já tinha.
+    const running = input.down('ShiftLeft') || input.down('ShiftRight') || !!flightGear;
+    const gait = this.crouching || running ? 1 : WALK_FRACTION;
+    const cap = Math.max(topSpeed * gait, this.onGround ? 0 : Math.abs(this.vx));
     if (dir !== 0) {
       const accel = this.onGround ? 1400 : 900;
-      this.vx = clamp(this.vx + dir * accel * dt, -topSpeed, topSpeed);
+      const limit = this.onGround ? Math.max(cap, Math.abs(this.vx) - 450 * dt) : cap;   // soltou o Shift correndo: desacelera até o passo, sem tranco
+      this.vx = clamp(this.vx + dir * accel * dt, -limit, limit);
       if (!this.lockFacing) this.facing = dir; // durante um golpe a direção fica travada
     } else if(!flightGear) {
       const friction = (this.onGround ? 1600 : 400) * dt;
@@ -237,6 +243,7 @@ class Player extends Body {
     if (this.climbing) {
       this.vy = jump ? -CLIMB_SPEED : down ? CLIMB_SPEED : 0;
       this.climbAnim = (this.climbAnim || 0) + Math.abs(this.vy) * dt * 0.06;
+      this.climbPhase = (this.climbPhase || 0) + Math.abs(this.vy) * dt * 0.2;   // um ciclo de 8 quadros a cada ~40 px: as mãos acompanham os degraus
       this.moveX(this.vx * 0.6 * dt, world);
       this.moveY(this.vy * dt, world);
       this.settleStep(dt);

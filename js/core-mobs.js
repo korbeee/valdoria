@@ -18,78 +18,137 @@ const toneOf = (P, v) => P[clamp(Math.floor(v * P.length), 0, P.length - 1)];
 // ---------------------------------------------------------------- desenhos
 function paintMagmaBeetle(s, pal, f) {                       // 30x18: 0-3 andando, 4 parado, 5 investindo (asas abertas)
   const walk = f < 4, ph = walk ? (f / 4) * Math.PI * 2 : 0, dash = f === 5, base = 16;
+  const basalt=[[25,26,33],[42,43,52],[60,62,73],[82,85,95],[112,117,124],[146,150,151]];
   for (let i = 0; i < 3; i++) for (const side of [0, 1]) {   // seis patas
     const q = ph + i * 2.1 + side * 3, x = 8 + i * 5 + side * 1.5, st = walk ? Math.sin(q) * 1.6 : 0, lift = walk ? Math.max(0, -Math.cos(q)) * 1.4 : 0;
-    limb(s, x, base - 5, x + st + (side ? 2 : -2), base - lift, 1, side ? [OBS[0], OBS[2], OBS[3]] : [OBS[0], OBS[1], OBS[1]]);
+    limb(s, x, base - 5, x + st + (side ? 2 : -2), base - lift, 1, [basalt[0],basalt[1],basalt[2]]);
   }
-  shadeBall(s, 14, base - 7, 12, 7, (v) => (v > 0.7 ? OBS[4] : v > 0.45 ? OBS[3] : v > 0.2 ? OBS[2] : OBS[1]));            // casco
-  for (const [x0, y0, x1, y1] of [[8, base - 11, 12, base - 8], [12, base - 8, 15, base - 3], [15, base - 12, 19, base - 9], [19, base - 9, 22, base - 5]]) {
-    for (let i = 0; i <= 4; i++) s.set(Math.round(lerp(x0, x1, i / 4)), Math.round(lerp(y0, y1, i / 4)), EMBER[1 + (i & 1)]);   // rachaduras de brasa
+  // Casco mineral com facetas largas, borda escura e reflexos frios no topo.
+  shadeBall(s, 13, 9, 11, 7, (v,dx,dy,x,y) => {
+    const facet=(x<10&&y<7)?.1:(x>16?-.12:0);
+    return basalt[clamp(Math.floor((v+facet)*4.6),0,5)];
+  });
+  for(const [x,y]of [[6,8],[7,7],[8,5],[12,3],[16,4],[19,6]])s.set(x,y,basalt[4]);
+  // Fendas ramificadas: bordas de brasa vermelha e núcleo amarelo quente.
+  const cracks=[[[7,4],[9,6],[10,6],[11,9],[14,10],[14,13]],[[11,9],[8,10],[7,12]],[[15,3],[15,5],[17,6],[17,8],[20,10]],[[17,8],[15,9]],[[20,10],[19,12],[20,14]]];
+  for(const points of cracks)for(let j=1;j<points.length;j++){
+    const [x0,y0]=points[j-1],[x1,y1]=points[j],n=Math.max(Math.abs(x1-x0),Math.abs(y1-y0));
+    for(let i=0;i<=n;i++){
+      const x=Math.round(lerp(x0,x1,i/n)),y=Math.round(lerp(y0,y1,i/n));
+      if(!s.opaque(x,y))continue;
+      for(const [dx,dy]of [[-1,0],[1,0],[0,1]])if(s.opaque(x+dx,y+dy))s.set(x+dx,y+dy,[104,47,31]);
+      s.set(x,y,EMBER[dash?3:((x+y)%3===0?3:2)]);
+    }
   }
-  if (dash) { limb(s, 6, base - 11, 1, base - 16, 2, [OBS[0], EMBER[1], EMBER[2]]); limb(s, 12, base - 13, 8, base - 18, 2, [OBS[0], EMBER[1], EMBER[2]]); }
-  shadeBall(s, 25, base - 5, 5, 4, (v) => (v > 0.6 ? OBS[3] : v > 0.3 ? OBS[2] : OBS[1]));                                   // cabeça
-  s.set(27, base - 7, EMBER[3]); s.set(28, base - 7, EMBER[2]);                                                              // olho
-  limb(s, 28, base - 3, 31, base - 1, 1, [OBS[0], EMBER[1], EMBER[2]]); limb(s, 27, base - 2, 29, base + 1, 1, [OBS[0], EMBER[1], EMBER[2]]);   // mandíbulas
+  if (dash) { limb(s, 6,5,2,1,1,[basalt[0],EMBER[1],EMBER[2]]);limb(s,12,3,9,0,1,[basalt[0],EMBER[1],EMBER[3]]); }
+  // Pronoto e cabeça separados da carapaça, olhos em brasa e mandíbulas de pedra.
+  shadeBall(s,22,10,4,4,(v)=>basalt[clamp(Math.floor(v*4),0,4)]);
+  seg(s,21,7,22,11,1,basalt[0]);
+  shadeBall(s,26,11,3.5,3.5,(v)=>basalt[clamp(Math.floor(v*3.5),0,4)]);
+  s.set(26,9,EMBER[1]);s.set(27,9,EMBER[3]);s.set(28,9,EMBER[2]);
+  seg(s,26,8,27,6,1,basalt[2]);s.set(28,6,EMBER[1]);
+  seg(s,28,11,30,12,1,basalt[3]);seg(s,30,12,30,14,1,EMBER[2]);
+  seg(s,27,13,28,16,1,basalt[2]);s.set(29,16,EMBER[2]);
+  for(let i=0;i<3;i++){
+    const x=7+i*6,st=walk?Math.round(Math.sin(ph+i*2.1)*2):0,lift=walk?Math.round(Math.max(0,-Math.cos(ph+i*2.1))):0;
+    limb(s,x,12,x-2+st,15-lift,1,[basalt[0],basalt[2],basalt[3]]);
+    seg(s,x-2+st,15-lift,x+st,16-lift,1,basalt[1]);s.set(x-2+st,15-lift,[130,71,37]);
+  }
 }
 function paintMagnetGolem(s, pal, f) {                       // 34x44: 0-3 andando, 4 parado, 5 braços erguidos, 6 esmagando
-  const walk = f < 4, ph = walk ? (f / 4) * Math.PI * 2 : 0, wind = f === 5, slam = f === 6, base = 42, bob = walk ? Math.round(Math.abs(Math.sin(ph))) : 0;
+  const walk = f < 4, ph = walk ? (f / 4) * Math.PI * 2 : 0, wind = f === 5, slam = f === 6, base = 52, bob = walk ? Math.round(Math.abs(Math.sin(ph))) : 0;
   const blk = (x, y, w, h, c) => { for (let j = 0; j < h; j++) for (let i = 0; i < w; i++) s.set(Math.round(x + i), Math.round(y + j), c(i, j, w, h)); };
   const rock = (i, j, w, h) => (j === 0 ? MAGN[3] : i === 0 ? MAGN[2] : j === h - 1 || i === w - 1 ? MAGN[0] : hash2(i, j, 7) < 0.2 ? MAGN[1] : MAGN[2]);
   for (const [lx, off] of [[10, 0], [20, Math.PI]]) {                                      // pernas de pedra
     const q = ph + off, st = walk ? Math.round(Math.sin(q) * 2) : 0, lift = walk ? Math.round(Math.max(0, -Math.cos(q)) * 2) : 0;
     blk(lx + st, base - 12 - lift, 7, 12 + lift, rock); blk(lx + st - 1, base - 3 - lift, 9, 3, (i, j) => (j === 0 ? MAGN[3] : MAGN[0]));
   }
-  const ty = 12 - bob + (slam ? 3 : 0);
-  blk(6, ty, 22, 18, (i, j, w, h) => (j === 0 ? MAGN[4] : i < 2 ? MAGN[3] : j > h - 3 || i > w - 3 ? MAGN[0] : hash2(i >> 1, j >> 1, 5) < 0.25 ? MAGN[1] : MAGN[2]));   // tronco
+  const ty = 22 - bob + (slam ? 3 : 0);
+  wildPoly(s,[[8,ty],[23,ty-1],[28,ty+4],[26,ty+15],[22,ty+18],[10,ty+17],[5,ty+12],[5,ty+5]],MAGN);
+  for(const [ax,ay,bx,by]of [[7,ty+6,12,ty+8],[23,ty+3,21,ty+7],[9,ty+13,13,ty+15]])seg(s,ax,ay,bx,by,1,MAGN[1]);
+  for(const [x,y]of [[8,ty+3],[12,ty+2],[23,ty+4],[21,ty+14]]){seg(s,x,y,x+2,y+2,1,MAGN[0]);s.set(x+1,y,MAGN[3]);}
+  shadeBall(s,7,ty+2,4,4,(v)=>toneOf(MAGN,v*.75));shadeBall(s,27,ty+2,4,4,(v)=>toneOf(MAGN,v*.65));
   shadeBall(s, 17, ty + 9, 4, 4, (v) => (v > 0.6 ? [230, 250, 255] : v > 0.3 ? [120, 200, 250] : [40, 110, 200]));                   // núcleo azul
   for (const [x, y, h] of [[8, ty - 5, 7], [14, ty - 8, 9], [22, ty - 6, 7]]) for (let k = 0; k < h; k++) { s.set(x, y + h - k, MAGN[k > h - 3 ? 4 : 3]); s.set(x + 1, y + h - k, MAGN[2]); if (k < h - 2) s.set(x - 1, y + h - k, MAGN[0]); }   // cristais nos ombros
-  blk(12, ty - 8, 10, 8, rock); s.set(15, ty - 5, [120, 200, 250]); s.set(19, ty - 5, [120, 200, 250]);                                // cabeça com olhos
+  wildPoly(s,[[12,ty-8],[19,ty-9],[23,ty-6],[21,ty-1],[13,ty-1],[11,ty-5]],MAGN);s.set(15,ty-5,[120,200,250]);s.set(19,ty-5,[120,200,250]);
+  seg(s,14,ty-7,16,ty-6,1,MAGN[0]);seg(s,19,ty-6,21,ty-7,1,MAGN[0]);seg(s,16,ty-2,19,ty-2,1,MAGN[0]);
   for (const side of [-1, 1]) {                                                                                                        // braços
     const sx = side < 0 ? 2 : 28;
     if (wind) blk(sx, ty - 14, 5, 16, rock);
     else if (slam) blk(side < 0 ? 4 : 26, ty + 8, 6, 24, rock);
     else blk(sx, ty + 2, 5, 18 + (walk ? Math.round(Math.sin(ph + (side > 0 ? Math.PI : 0)) * 2) : 0), rock);
     const fy = wind ? ty - 16 : slam ? ty + 31 : ty + 20; blk(sx - 1, fy, 7, 6, rock);
+    for(let k=1;k<6;k+=2)s.set(sx-1+k,fy+4,MAGN[0]);
   }
 }
-function paintEmberSkull(s, pal, f) {                         // 22x24: 0-3 pairando (a chama tremula), 4 cuspindo
-  const fl = f & 3, shoot = f === 4;
-  for (let k = 0; k < 6; k++) { const x = 6 + k * 2, h = 6 + ((k + fl) % 3) * 2 + (k === 2 || k === 3 ? 3 : 0); for (let y = 0; y < h; y++) s.set(x, 8 - y + 1, EMBER[Math.min(3, 1 + Math.floor((y / h) * 3))]); }   // chama na cabeça
-  shadeBall(s, 11, 13, 8, 7, (v) => (v > 0.7 ? [250, 244, 224] : v > 0.45 ? [226, 214, 184] : v > 0.2 ? [176, 160, 124] : [112, 98, 76]));
-  shadeBall(s, 8, 12, 2.4, 2.6, () => [24, 14, 14]); shadeBall(s, 14, 12, 2.4, 2.6, () => [24, 14, 14]);
-  s.set(8, 12, EMBER[3]); s.set(14, 12, EMBER[3]); s.set(8, 13, EMBER[2]); s.set(14, 13, EMBER[2]);
-  s.set(11, 15, [60, 40, 30]); s.set(10, 16, [60, 40, 30]); s.set(12, 16, [60, 40, 30]);                                        // nariz
-  const jaw = shoot ? 5 : 2;
-  for (let x = 6; x <= 16; x++) { s.set(x, 18 + jaw - 2, [226, 214, 184]); if ((x & 1) === 0) s.set(x, 19 + jaw - 2, [250, 244, 224]); }
-  if (shoot) for (let x = 8; x <= 14; x++) for (let y = 19; y <= 22; y++) s.set(x, y, EMBER[Math.min(3, y - 19 + (x === 11 ? 1 : 0))]);
+function paintEmberSkull(s, pal, f) { // Crânio ósseo recortado e fogo em cinco quadros.
+  const fl=f&3,shoot=f===4,bone=[[102,79,61],[161,140,106],[212,191,149],[239,225,184],[255,245,213]];
+  for(const [cx,height]of [[8,8],[14,13],[20,9]]){
+    const top=Math.max(1,14-height+((fl+cx)%3)-1);
+    for(let y=top;y<=15;y++){
+      const d=y-top,half=d<2?0:d<5?1:3,bend=d<5?Math.round(Math.sin((fl+cx)*1.4)*(5-d)/3):0;
+      for(let x=cx-half+bend;x<=cx+half+bend;x++)s.set(x,y,EMBER[Math.abs(x-cx-bend)===half?1:d>6?3:2]);
+    }
+  }
+  shadeBall(s,14,19,9,8,(v,dx,dy)=>dy>.6?null:bone[clamp(Math.floor(v*4.5),0,4)]);
+  // Maçãs do rosto proeminentes, têmporas cavadas e testa fraturada.
+  shadeBall(s,6.5,22,2.3,2,(v)=>bone[clamp(Math.floor(v*4),0,4)]);
+  shadeBall(s,21.5,22,2.3,2,(v)=>bone[clamp(Math.floor(v*3),0,3)]);
+  seg(s,13,12,12,14,1,bone[1]);seg(s,12,14,14,16,1,bone[1]);s.set(15,15,bone[1]);
+  shadeBall(s,9,19.5,3.4,3.2,()=>[39,27,25]);shadeBall(s,19,19.5,3.4,3.2,()=>[39,27,25]);
+  seg(s,6,16,11,18,1,bone[3]);seg(s,17,18,22,16,1,bone[2]);
+  for(const x of [9,18]){s.set(x,20,EMBER[3]);s.set(x+1,20,EMBER[2]);s.set(x,21,EMBER[1]);}
+  s.set(14,22,[50,36,28]);s.set(13,23,[50,36,28]);s.set(15,23,[50,36,28]);
+  // Mandíbula afilada no queixo, com dentes espaçados e irregulares.
+  const drop=shoot?2:0;
+  for(let y=24;y<=29+drop;y++){
+    const inset=y<26?0:y<28+drop?1:2;
+    for(let x=8+inset;x<=20-inset;x++)s.set(x,y,y===24?bone[2]:y>=28+drop?bone[x<14?2:1]:[47,32,25]);
+  }
+  for(const [x,h]of [[9,1],[12,2],[15,2],[18,1]])for(let y=25;y<25+h;y++)s.set(x,y,bone[4]);
+  for(const x of [11,14,17])s.set(x,27+drop,bone[3]);
+  s.set(10,28+drop,bone[3]);s.set(18,28+drop,bone[1]);
+  if(shoot)for(let y=26;y<=32;y++)for(let x=12;x<=16;x++)if(y<30||Math.abs(x-14)<2)s.set(x,y,EMBER[x===14?3:1]);
 }
 function paintKnight(s, pal, f, o) {                          // guarda/capitão: 0-3 andando, 4 parado, 5 armando, 6 golpeando
-  const W = 34, base = 40 + (o.tall || 0), walk = f < 4, ph = walk ? (f / 4) * Math.PI * 2 : 0, wind = f === 5, stab = f === 6, bob = walk ? Math.round(Math.abs(Math.sin(ph))) : 0;
+  const W = 34, base = 46 + (o.tall || 0), walk = f < 4, ph = walk ? (f / 4) * Math.PI * 2 : 0, wind = f === 5, stab = f === 6, bob = walk ? Math.round(Math.abs(Math.sin(ph))) : 0;
   const ARM = o.armor, cx = 14;
   for (const [side, off] of [[-1, 0], [1, Math.PI]]) {                                    // pernas de placa
     const q = ph + off, st = walk ? Math.round(Math.sin(q) * 3) : 0, lift = walk ? Math.max(0, -Math.cos(q)) * 2 : 0, hx = cx + side * 3, fx = hx + st, fy = base - lift;
     limb(s, hx, base - 16 - bob, fx, fy - 2, 4, side < 0 ? [ARM[0], ARM[1], ARM[2]] : [ARM[0], ARM[2], ARM[3]]);
+    shadeBall(s,hx+st*.5,base-9-bob,2.4,2.4,(v)=>toneOf(ARM,v*.8));
+    for(const y of [base-5,base-3])s.set(Math.round(fx)-1,y,ARM[3]);
     for (let k = -2; k <= 3; k++) s.set(Math.round(fx) + k, Math.round(fy), k === -2 || k === 3 ? ARM[0] : ARM[2]);
   }
   const ty = base - 33 - bob;                                                            // peitoral largo
+  limb(s,cx-8,ty+3,cx-10,ty+12,2,[ARM[0],ARM[1],ARM[3]]);
+  shadeBall(s,cx-10,ty+13,2.3,2.7,(v)=>toneOf(ARM,v*.85));
   for (let y = ty; y < ty + 17; y++) { const hw = 7.5 - (y - ty) * 0.18; for (let x = Math.round(cx - hw); x <= Math.round(cx + hw); x++) { const u = (x - cx) / hw; s.set(x, y, y === ty ? ARM[4] : u < -0.5 ? ARM[3] : u < 0.3 ? ARM[2] : u < 0.75 ? ARM[1] : ARM[0]); } }
   for (const [x, y] of [[cx, ty + 6], [cx - 1, ty + 7], [cx + 1, ty + 7], [cx, ty + 8]]) s.set(x, y, EMBER[x === cx && y === ty + 7 ? 3 : 2]);   // runa
   for (let x = cx - 7; x <= cx + 7; x++) s.set(x, ty + 12, ARM[0]);                      // cinto
+  for(const x of [cx-5,cx+4]){s.set(x,ty+3,ARM[4]);s.set(x,ty+10,ARM[3]);}
+  seg(s,cx-4,ty+4,cx-1,ty+5,1,ARM[3]);seg(s,cx+1,ty+5,cx+4,ty+4,1,ARM[1]);
+  for(let i=0;i<3;i++){seg(s,cx-5+i,ty+13+i,cx+5-i,ty+13+i,1,i%2?ARM[1]:ARM[2]);}
   for (const sd of [-1, 1]) shadeBall(s, cx + sd * 9, ty + 2, 4, 3.4, (v) => (v > 0.6 ? ARM[4] : v > 0.35 ? ARM[3] : ARM[2]));   // ombreiras
   const hy = ty - 10;                                                                    // elmo com viseira acesa
   shadeBall(s, cx, hy + 5, 6, 6, (v) => (v > 0.7 ? ARM[4] : v > 0.45 ? ARM[3] : v > 0.2 ? ARM[2] : ARM[1]));
   for (let x = cx - 4; x <= cx + 4; x++) s.set(x, hy + 6, EMBER[x > cx ? 3 : 2]); for (let x = cx - 3; x <= cx + 3; x++) s.set(x, hy + 7, [30, 16, 10]);
+  seg(s,cx,hy+1,cx,hy+5,1,ARM[4]);
+  for(const y of [hy+8,hy+9])for(const x of [cx-2,cx,cx+2])s.set(x,y,ARM[0]);
+  s.set(cx-4,hy+8,ARM[3]);s.set(cx+4,hy+8,ARM[1]);
   if (o.horns) for (const sd of [-1, 1]) limb(s, cx + sd * 5, hy + 2, cx + sd * 9, hy - 6, 2, [ARM[0], ARM[3], ARM[4]]); else for (let y = hy - 2; y <= hy + 1; y++) s.set(cx, y, EMBER[1]);   // chifres ou crista
   if (o.cape) for (let y = ty; y < base - 6; y++) { const w = 3 + (y - ty) * 0.25; for (let x = Math.round(cx - 9 - w * 0.3); x < cx - 7; x++) s.set(x, y + (walk ? Math.round(Math.sin(ph + y * 0.3) * 0.7) : 0), x < cx - 9 ? EMBER[0] : [110, 28, 18]); }
   const shX = cx + 11 + (stab ? 3 : 0);                                                  // escudo-torre na frente
   for (let y = ty - 1; y < ty + 21; y++) for (let x = shX - 3; x <= shX + 3; x++) s.set(x, y, x === shX - 3 || x === shX + 3 || y === ty - 1 || y === ty + 20 ? EMBER[1] : x < shX ? ARM[3] : ARM[2]);
   s.set(shX, ty + 8, EMBER[3]); s.set(shX, ty + 9, EMBER[2]);
+  for(const y of [ty+2,ty+17])for(const x of [shX-2,shX+2])s.set(x,y,ARM[4]);
+  for(let k=-2;k<=2;k++){s.set(shX+k,ty+8-Math.abs(k),EMBER[2]);s.set(shX+k,ty+10+Math.abs(k),ARM[0]);}
   const hx = shX + 1, hy2 = ty + 11, tip = stab ? 33 : wind ? cx - 4 : cx + 20;            // lança: recuada, normal ou cravada
   limb(s, cx + 6, hy2, tip, stab ? hy2 - 2 : wind ? hy2 - 6 : hy2 - 10, 1, [ARM[0], [120, 90, 56], [170, 130, 80]]);
   for (let k = 0; k < 3; k++) s.set(Math.round(tip) + k, Math.round(stab ? hy2 - 2 : wind ? hy2 - 6 : hy2 - 10), EMBER[k + 1]);
 }
 function paintArcher(s, pal, f) {                              // 0-3 andando, 4 parado, 5 mirando (arco esticado, flecha acesa)
-  const walk = f < 4, ph = walk ? (f / 4) * Math.PI * 2 : 0, draw = f === 5, base = 38, bob = walk ? Math.round(Math.abs(Math.sin(ph))) : 0, cx = 14, A = [[22, 14, 18], [58, 36, 40], [96, 62, 56], [150, 100, 80], [200, 150, 110]];
+  const walk = f < 4, ph = walk ? (f / 4) * Math.PI * 2 : 0, draw = f === 5, base = 44, bob = walk ? Math.round(Math.abs(Math.sin(ph))) : 0, cx = 14, A = [[22, 14, 18], [58, 36, 40], [96, 62, 56], [150, 100, 80], [200, 150, 110]];
   for (const [side, off] of [[-1, 0], [1, Math.PI]]) { const q = ph + off, st = walk ? Math.round(Math.sin(q) * 3) : 0, lift = walk ? Math.max(0, -Math.cos(q)) * 2 : 0; limb(s, cx + side * 2, base - 15 - bob, cx + side * 2 + st, base - lift - 1, 3, side < 0 ? [A[0], A[1], A[2]] : [A[0], A[2], A[3]]); }
   const ty = base - 31 - bob;
   for (let y = ty; y < ty + 16; y++) { const hw = 5.5 + (y - ty) * 0.12; for (let x = Math.round(cx - hw); x <= Math.round(cx + hw); x++) s.set(x, y, x < cx - 1 ? A[3] : x < cx + 2 ? A[2] : A[1]); }          // túnica
@@ -98,6 +157,11 @@ function paintArcher(s, pal, f) {                              // 0-3 andando, 4
   const hy = ty - 8;                                                                                                                                                         // capuz
   shadeBall(s, cx, hy + 5, 6, 6, (v) => (v > 0.6 ? A[3] : v > 0.3 ? A[2] : A[1])); for (let y = hy - 4; y < hy + 1; y++) for (let x = cx - 1 - (hy - y) * 0 ; x <= cx + 1; x++) s.set(x, y, A[2]);
   s.set(cx + 2, hy + 6, EMBER[3]); s.set(cx + 3, hy + 6, EMBER[2]); s.set(cx + 4, hy + 6, EMBER[1]);
+  shadeBall(s,cx+2,hy+5,3.4,3.5,()=>A[0]);
+  seg(s,cx,hy+5,cx+4,hy+5,1,EMBER[2]);s.set(cx+3,hy+5,EMBER[3]);
+  seg(s,cx-4,hy+2,cx-2,hy,1,A[4]);seg(s,cx-3,hy+8,cx+3,hy+9,1,A[1]);
+  for(let i=0;i<9;i++)s.set(cx-4+i,ty+2+i, A[i%3===0?4:1]);
+  seg(s,cx-6,ty+13,cx+6,ty+13,1,A[0]);s.set(cx+2,ty+13,EMBER[2]);
   const bx = cx + 12, by = ty + 8;                                                                                                                                           // arco
   for (let k = -9; k <= 9; k++) { const x = bx + Math.round((1 - (k / 9) ** 2) * 4 * (draw ? 1.4 : 1)); s.set(x, by + k, A[0]); s.set(x - 1, by + k, EMBER[1]); }
   if (draw) { for (let k = 0; k < 14; k++) s.set(bx - 5 + k * 1, by, k > 10 ? EMBER[3] : k > 7 ? EMBER[2] : [190, 170, 140]); limb(s, bx - 5, by - 9, bx - 6, by, 0.5, [A[0], A[0], A[0]]); }
@@ -114,7 +178,7 @@ Object.assign(WILDLIFE, {
   arqueirobrasa: { name: 'Arqueiro de brasa', where: 'Fortalezas de lava', hostile: true, monstro: true, hp: 55, speed: 34, damage: 8, w: 16, h: 34, drops: [[ITEM.BRONZE, 1, 2], [ITEM.ARROW, 4, 10], [ITEM.EMBER_LILY, 1, 1, 0.3]], color: '#8a5a48', shape: 'arqueirobrasa' },
   capitaofortaleza: { name: 'Capitão da fortaleza', where: 'Fortalezas de lava', hostile: true, monstro: true, heavy: true, hp: 300, speed: 26, damage: 20, w: 22, h: 42, drops: [[ITEM.BRONZE, 4, 8], [ITEM.CORE_SHARD, 2, 4], [ITEM.AMBER, 2, 5], [ITEM.GOLD, 3, 7]], color: '#6a4060', shape: 'capitaofortaleza' },
 });
-Object.assign(WILD_SIZES, { besouromagma: [32, 18], golemmagnetita: [36, 46], craniobrasa: [22, 26], guardaobsidiana: [40, 42], arqueirobrasa: [34, 40], capitaofortaleza: [40, 46] });
+Object.assign(WILD_SIZES, { besouromagma: [32, 18], golemmagnetita: [36, 58], craniobrasa: [28, 34], guardaobsidiana: [40, 48], arqueirobrasa: [34, 46], capitaofortaleza: [40, 52] });
 for (const k of ['besouromagma', 'golemmagnetita', 'craniobrasa', 'guardaobsidiana', 'arqueirobrasa', 'capitaofortaleza']) { WILD_PALETTES[k] = OBS; MOB_SFX[k] = k === 'craniobrasa' ? 'bat' : k === 'besouromagma' ? 'bug' : 'bug'; }
 Object.assign(BESTIARY_LORE, {
   besouromagma: 'Besouro de carapaça de basalto, com a brasa escorrendo pelas rachaduras. Anda devagar até te ver; aí abaixa a cabeça e investe.',

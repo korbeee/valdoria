@@ -5,9 +5,47 @@
 // Tigre    — quadros e desenho em js/tiger-art.js; tigerFrame (no fim) escolhe o quadro.
 // Paleta do elefante: definida por ELE_SKIN_STYLES, mais abaixo
 WILD_PALETTES.tiger = [[92, 40, 16], [168, 76, 24], [218, 118, 38], [242, 158, 68], [252, 200, 124]];
-WILD_PALETTES.hyena = [[58, 46, 34], [104, 86, 58], [150, 128, 88], [192, 170, 122], [224, 206, 160]];
+WILD_PALETTES.hyena = [[68,51,39],[117,89,58],[164,135,85],[204,176,120],[233,211,163]];
+WILD_SIZES.hyena = [48,32];
 WILD_SIZES.elephant = [92, 66];
 WILD_SIZES.tiger = [TIGER_ART.W, TIGER_ART.H]; // js/tiger-art.js, 1 px da arte = 1 px do mundo, como a fauna
+
+// Hiena com ombros altos, garupa baixa, orelhas redondas e mandíbula larga.
+function paintHyena(s,pal,f){
+  const {walk,idle,ph}=frameInfo(f),air=f===12||f===13,bob=walk?Math.round(Math.abs(Math.sin(ph))):idle===1?1:0;
+  const dark=[63,47,35],spot=[103,76,47],dy=-bob;
+  const leg=(x,front,far)=>{
+    const q=ph+(far?Math.PI:0)+(front?Math.PI:0),step=walk?Math.round(Math.sin(q)*3):0,foot=air?26:30-(walk?Math.round(Math.max(0,-Math.cos(q))*2):0);
+    const top=front?18+dy:22+dy,kx=x+(front?1:-3)+step*.4,ky=front?24+dy:26+dy,fx=x+step;
+    const color=(px,py)=>pal[far?0:px<x?3:py<ky?2:1];
+    savannaFill(s,[[x-2,top],[x+2,top],[kx+1.2,ky],[kx-1.2,ky]],color);
+    savannaFill(s,[[kx-1.2,ky],[kx+1.2,ky],[fx+1,foot-1],[fx-1,foot-1]],color);
+    shadeBall(s,fx+.6,foot-1,1.9,1.1,()=>far?pal[0]:pal[1]);
+  };
+  leg(16,false,true);leg(29,true,true);
+  seg(s,10,21+dy,6,26+dy,2,pal[1]);shadeBall(s,5,26+dy,2.3,2,()=>dark);
+  const spots=[[11,19],[16,18],[20,16],[23,19],[27,15],[30,19],[18,22],[25,22],[13,23]];
+  const coat=(x,y)=>{
+    const ly=y-dy;
+    if(spots.some(([sx,sy])=>(x-sx)**2+(ly-sy)**2<1.8))return spot;
+    return pal[ly<15?3:ly<22?2:1];
+  };
+  savannaFill(s,[[8,19+dy],[10,16+dy],[16,15+dy],[23,12+dy],[29,10+dy],[33,11+dy],[35,15+dy],[33,21+dy],[29,23+dy],[23,24+dy],[18,24+dy],[14,26+dy],[10,24+dy],[8,22+dy]],coat);
+  shadeBall(s,29,16+dy,5.5,6,(v,dx,dy2,x,y)=>spots.some(([sx,sy])=>(x-sx)**2+(y-dy-sy)**2<1.8)?spot:tone(pal,v*.65+.2));
+  for(let x=16;x<29;x++){const y=Math.round(15-(x-16)*.4)+dy;s.set(x,y,pal[1]);if(x%4===0)s.set(x,y-1,pal[1]);}
+  leg(14,false,false);leg(30,true,false);
+  shadeBall(s,35.5,12+dy,4.8,4.4,(v)=>tone(pal,v*.65+.3));
+  // Orelhas separadas, com borda clara e miolo marrom; nada de chifres ou blocos.
+  for(const [ex,ey]of [[32.5,6.5],[37.5,6.8]]){
+    shadeBall(s,ex,ey+dy,2,2.6,(v)=>v>.5?pal[3]:pal[1]);
+    shadeBall(s,ex,ey+.4+dy,1,1.5,()=>[126,94,65]);
+  }
+  shadeBall(s,40,14+dy,4,2.6,(v,dx,dy2)=>dy2>.35?pal[2]:v>.7?pal[2]:pal[1]);
+  s.set(44,14+dy,[38,32,28]);s.set(43,14+dy,[38,32,28]);
+  seg(s,39,16+dy,43,16+dy,1,dark);
+  s.set(38,12+dy,idle===3?pal[1]:[33,31,25]);s.set(37,11+dy,pal[1]);s.set(37,12+dy,pal[4]);
+  if(f===15){s.set(41,17+dy,[235,219,177]);s.set(42,17+dy,[235,219,177]);}
+}
 
 function savannaFill(s, pts, fn) {
   const xs = pts.map((p) => p[0]), ys = pts.map((p) => p[1]);

@@ -65,17 +65,29 @@ function addWeatherLayers(g,type,duration,intensity=1){
   if(add.tornado>0&&!w.funnel)spawnWeatherFunnel(g);
   if(typeof weatherAnnounce==='function')weatherAnnounce(g);
 }
+// Onde o funil toca o chão: na superfície da água se há mar, lago ou rio embaixo (tromba d'água), senão no relevo
+function funnelBase(world,tx){
+  tx=clamp(tx|0,0,world.w-1);
+  // mar: a superfície é o nível do mar, sem depender de alga, mastro de navio ou recife no caminho do céu
+  if(world.oceanStart<world.w&&tx>=world.oceanStart-60){
+    const sea=world.seaLevel;
+    if(world.hasWater(tx,sea)){const s=world.waterSurfacePx(tx,sea);if(s!=null)return {y:s,water:true};}
+  }
+  let y=world.skyTop[tx]-1;
+  if(y>0&&world.hasWater(tx,y)){while(y>0&&world.hasWater(tx,y-1))y--;const s=world.waterSurfacePx(tx,y);if(s!=null)return {y:s,water:true};}
+  return {y:world.groundTop(tx)*T,water:false};
+}
 // O funil nasce de lado, a uma distância do jogador, em céu aberto
 function spawnWeatherFunnel(g){
   const w=g.weather,dir=Math.random()<.5?-1:1;
   const x=clamp(g.player.cx+dir*(110+Math.random()*160),T*5,(g.world.w-5)*T),tx=Math.floor(x/T);
-  w.funnel={x,y:g.world.groundTop(tx)*T,height:180,radius:65,strength:0,age:0,vx:-dir*20,seed:Math.random()*1000};
+  w.funnel={x,y:funnelBase(g.world,tx).y,height:180,radius:65,strength:0,age:0,vx:-dir*20,seed:Math.random()*1000};
 }
 function chooseWeather(g){
   const w=g.weather,b=g.world.biomeAt(Math.floor(g.player.cx/T));
   if(w.event!=='calm'){setWeatherEvent(g,'calm',ENVIRONMENT.weather.calmMin+Math.random()*(ENVIRONMENT.weather.calmMax-ENVIRONMENT.weather.calmMin));return;}
   const ex=w.extremeCooldown<=0;
-  if(ex&&[BIOME.FOREST,BIOME.SAVANNA,BIOME.DESERT,BIOME.MESA].includes(b)&&Math.random()<ENVIRONMENT.weather.tornadoChance){setWeatherEvent(g,b===BIOME.DESERT||b===BIOME.MESA?'dustDevil':'tornado',30+Math.random()*25);return;}
+  if(ex&&[BIOME.FOREST,BIOME.SAVANNA,BIOME.DESERT,BIOME.MESA,BIOME.OCEAN].includes(b)&&Math.random()<ENVIRONMENT.weather.tornadoChance){setWeatherEvent(g,b===BIOME.DESERT||b===BIOME.MESA?'dustDevil':'tornado',30+Math.random()*25);return;}
   const choices=b===BIOME.MESA?[['breeze',40],['wind',30],['dryLightning',ex?8:0],['dustDevil',ex?6:0],['fog',4]]:
     b===BIOME.SWAMP?[['breeze',14],['fog',24],['drizzleFog',22],['drizzle',18],['rain',14],['storm',ex?4:0]]:
     b===BIOME.DESERT?[['breeze',42],['wind',32],['dryLightning',ex?7:0],['sandstorm',ex?15:0],['dustDevil',ex?4:0]]:
@@ -96,7 +108,24 @@ function weatherSandAt(g,x,y,lit=false){return (g.weather?.sand||0)*desertWeight
 function spawnWeatherParticle(g,sand){
   const W=canvas.width/g.zoom,H=canvas.height/g.zoom,x=g.cam.x+Math.random()*W,y=g.cam.y+Math.random()*H;
   if(!(sand?weatherSandAt(g,x,y):weatherRainAt(g,x,y)))return null;
+  if(!sand&&g.world.waterAtPx(x,y))return null; // chuva não nasce embaixo d'água
   return {x,y,speed:240+Math.random()*190,len:5+Math.random()*7,life:2+Math.random()*3};
+}
+// A gota chegou na água: respingo com gotículas na superfície (e, às vezes, um anel que se abre, js/water-waves.js)
+function rainHitsWater(g,x,y){
+  const w=g.weather,tx=Math.floor(x/T),surf=g.world.waterSurfacePx(tx,Math.floor(y/T));if(surf==null)return;
+  if(Math.random()<.55&&w.splashes.length<110)w.splashes.push({x,y:surf,life:.32,water:true,hit:true});
+  if(Math.random()<.18){const list=g.rainRings??=[];if(list.length<70)list.push({x,y:surf,t:0,life:.5+Math.random()*.3,r:3+Math.random()*4});}
+}
+// A gota bateu em terra, pedra, folhagem ou telhado: mini respingo na superfície (só uma parte das gotas, para não poluir)
+function rainHitsGround(g,x,y){
+  const w=g.weather,world=g.world;if(Math.random()>.32||w.splashes.length>=150)return;
+  const tx=Math.floor(x/T);
+  for(let ty=Math.floor(y/T);ty<=Math.floor(y/T)+2;ty++){
+    if(!world.isSolid(tx,ty)||world.isSolid(tx,ty-1)||world.hasWater(tx,ty-1))continue;
+    if(g.cam&&(x<g.cam.x-20||x>g.cam.x+canvas.width/g.zoom+20))return;
+    w.splashes.push({x,y:ty*T,life:.4,max:.4,water:false,ground:true,seed:Math.random()});return;
+  }
 }
 function updateWeather(g,dt){
   setWeatherView(g); // ilhas do céu fora da tela não seguram o tempo (js/environment.js)
@@ -127,7 +156,7 @@ function updateWeather(g,dt){
     f.strength+=(target-f.strength)*(1-Math.exp(-dt/4));
     if(typeof updateTornado==='function')updateTornado(g,f,dt); // anda, puxa, arremessa e derruba (js/weather-plus.js)
     else f.x=clamp(f.x+w.wind*.025*dt,T*4,(g.world.w-4)*T);
-    const ground=g.world.groundTop(Math.floor(f.x/T))*T;f.y+=(ground-f.y)*(1-Math.exp(-dt*2));
+    const base=funnelBase(g.world,Math.floor(f.x/T));f.water=base.water;f.y+=(base.y-f.y)*(1-Math.exp(-dt*2));
     if(!target&&f.strength<.003)w.funnel=null;
   }
   w.tornadoLevel=w.funnel?.strength||0;
@@ -138,8 +167,11 @@ function updateWeather(g,dt){
     for(let n=Math.min(16,target-list.length);n>0;n--){const p=spawnWeatherParticle(g,!!mode);if(p)list.push(p);}
     for(let i=list.length-1;i>=0;i--){const p=list[i],v=environmentWind(g,p.x,p.y),vx=mode?v.x*1.9:v.x*.85,vy=mode?Math.sin(w.clock+p.x*.02)*9+v.y:p.speed;
       const nx=p.x+vx*dt,ny=p.y+vy*dt,steps=Math.max(1,Math.ceil(Math.hypot(nx-p.x,ny-p.y)/(T*.4)));let hit=false;
+      let px=p.x,py=p.y;
       for(let j=1;j<=steps;j++){const x=lerp(p.x,nx,j/steps),y=lerp(p.y,ny,j/steps);
-        if(!(mode?weatherSandAt(g,x,y):weatherRainAt(g,x,y))){hit=true;break;}}
+        if(!(mode?weatherSandAt(g,x,y):weatherRainAt(g,x,y))){hit=true;if(!mode)rainHitsGround(g,px,py);break;}
+        if(!mode&&g.world.waterAtPx(x,y)){hit=true;rainHitsWater(g,x,y);break;}
+        px=x;py=y;} // oceano, rio, poço: a gota acaba na superfície e respinga
       p.x=nx;p.y=ny;p.life-=dt;
       if(hit||p.life<0||p.y>g.cam.y+canvas.height/g.zoom+20||p.x<g.cam.x-40||p.x>g.cam.x+canvas.width/g.zoom+40)list.splice(i,1);
     }
@@ -184,14 +216,20 @@ function drawWeather(ctx,g,W,H,ox,oy,z){
   WEATHER_VIEW_TOP=oy/z;
   const w=g.weather;if(!w||(w.rain<.005&&w.sand<.005&&w.flash<.005))return;ctx.save();ctx.setTransform(z,0,0,z,-ox,-oy);
   ctx.strokeStyle=`rgba(175,199,218,${.26+w.rain*.22})`;ctx.lineWidth=1/z;
-  for(const d of w.drops){if(!weatherRainAt(g,d.x,d.y))continue;const wind=environmentWind(g,d.x,d.y).x*.85/d.speed;
+  for(const d of w.drops){if(!weatherRainAt(g,d.x,d.y)||g.world.waterAtPx(d.x,d.y))continue;const wind=environmentWind(g,d.x,d.y).x*.85/d.speed;
     const endX=d.x-d.len*wind,endY=d.y-d.len;if(!weatherExposed(g.world,endX,endY))continue;
     ctx.globalAlpha=weatherRainAt(g,d.x,d.y)/Math.max(.001,w.rain);
     ctx.beginPath();ctx.moveTo(Math.round(d.x),Math.round(d.y));ctx.lineTo(Math.round(endX),Math.round(endY));ctx.stroke();}
   ctx.globalAlpha=1;
-  for(const s of w.splashes){if(!weatherRainAt(g,s.x,s.y-1))continue;const k=1-s.life/.32,r=1+k*4;ctx.globalAlpha=(1-k)*.55;ctx.fillStyle='#b2c8ca';
-    if(s.water){ctx.strokeStyle='#bfd6d2';ctx.beginPath();ctx.ellipse(s.x,s.y,r*2,Math.max(.5,r*.25),0,0,Math.PI*2);ctx.stroke();}
-    else{ctx.fillRect(Math.round(s.x-r),Math.round(s.y-k*3),1,1);ctx.fillRect(Math.round(s.x+r),Math.round(s.y-k*2),1,1);}}
+  for(const s of w.splashes){if(!weatherRainAt(g,s.x,s.y-1))continue;const k=1-s.life/(s.max||.32),r=1+k*4;ctx.globalAlpha=(1-k)*.55;ctx.fillStyle='#b2c8ca';
+    if(s.water){ctx.strokeStyle='#bfd6d2';ctx.beginPath();ctx.ellipse(s.x,s.y,r*2,Math.max(.5,r*.25),0,0,Math.PI*2);ctx.stroke();
+      if(s.hit){const h=Math.sin(k*Math.PI)*4;ctx.fillStyle='#e8f7ff';ctx.fillRect(Math.round(s.x-1-k*3),Math.round(s.y-h-1),1,1);ctx.fillRect(Math.round(s.x+1+k*3),Math.round(s.y-h-1),1,1);}} // gotículas saltando
+    else{ // mini splash: um anelzinho achatado no chão e três gotículas que sobem e caem em arco
+      const a=(1-k);ctx.globalAlpha=a*.45;ctx.fillStyle='#dcebf2';
+      const rw=Math.round(1+k*4);ctx.fillRect(Math.round(s.x-rw),Math.round(s.y)-1,rw*2+1,1);
+      ctx.globalAlpha=Math.min(1,a*1.3);
+      for(let d=0;d<3;d++){const dir=d-1,sd=(s.seed||0)*(d+1)%1,h=Math.sin(k*Math.PI)*(3.2+sd*2.4+(d===1?1.6:0)),dx=dir*(1.5+k*(3+sd*2));
+        ctx.fillStyle=d===1?'#eef8fc':'#c4dbe6';ctx.fillRect(Math.round(s.x+dx),Math.round(s.y-1-h),1,1+(h>3.4?1:0));}}}
   ctx.globalAlpha=1;
   for(const p of w.sandParticles){const a=weatherSandAt(g,p.x,p.y);if(!a)continue;ctx.fillStyle=`rgba(202,172,109,${a*.6})`;ctx.fillRect(Math.round(p.x),Math.round(p.y),2,1);}
   // Mask visibility and lightning by real exposure, including mixed-biome views.

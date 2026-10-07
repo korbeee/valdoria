@@ -88,7 +88,7 @@ function netPeerAnimation(p) {
   }
   const inventory={slots:[p.item!=null?{item:p.item,count:1}:null],count:id=>id===ITEM.ARROW?(a.ammo||0):id===ITEM.FLIGHT_FUEL?(equipment?.fuel||0):0};
   return {...equipment,clock:(equipment?.clock||0)+elapsed,player:p,toolAction:tool,sword,trident,bow,arrows:netVisualList(a.arrows,next?.arrows,k,elapsed),
-    world:game.world,netAim:a.aim,inventory,inventoryUI:{inv:inventory},selected:0,swinging:false,swingTime:0,mount:equipment?.mounted?{}:null};
+    world:game.world,mobs:game.mobs,netAim:a.aim,inventory,inventoryUI:{inv:inventory},selected:0,swinging:false,swingTime:0,mount:equipment?.mounted?{}:null};
 }
 function netPeerFrame(p) {
   const g=netPeerAnimation(p);
@@ -186,7 +186,7 @@ window.addEventListener('DOMContentLoaded', () => {
   updateAquaticSpawns = function(g, dt) {
     if (!NET.room) return aquatic(g,dt);
     if (NET.guest) return;
-    g.mobs = g.mobs.filter(m => !m.def?.aquatic || mobNearPlayer(g,m,AQUATIC_RANGE*T));
+    g.mobs = g.mobs.filter(m => m.carcass || !m.def?.aquatic || mobNearPlayer(g,m,AQUATIC_RANGE*T));
     if ((g.aquaticTimer = (g.aquaticTimer ?? 1)-dt)>0) return;
     g.aquaticTimer = 1.2+Math.random();
     netSpawnForPlayer(g, (context) => { context.aquaticTimer=0; return aquatic(context,0); }, [], 'aquatic');

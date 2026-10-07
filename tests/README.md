@@ -19,10 +19,13 @@ Alguns testes usam a instalação local em `http://localhost/jogo-teste/`, PHP e
 | Cenário | Comando | Requisitos |
 | --- | --- | --- |
 | Física de areia e neve | `node tests/falling-blocks.cjs` | Edge e endereço local do jogo |
+| Corpo e limpeza do tubarão | `node tests/shark-harvest.cjs` | Edge e endereço local do jogo; não grava mundos |
+| Oceano: navio, tridente por sorte, ondas de temporal, tartaruga e arraia | `node tests/ocean.cjs` | Edge e endereço local do jogo; não grava mundos |
 | Pesca | `node tests/fishing.cjs` | Edge e endereço local do jogo |
 | Equilíbrio da pesca | `node tests/fishing-balance.cjs` | Edge e endereço local do jogo |
 | Pesca multijogador | `node tests/fishing-network.cjs` | Edge, Node e endereço local do jogo |
 | Salvamento, recuperação e migração | `node tests/world-saves.cjs` | Edge e PHP local; cria arquivos temporários isolados |
+| Renomear e excluir mundos | `node tests/world-management.cjs` | Edge e PHP local; usa apenas mundos temporários isolados |
 | Desempenho durante o salvamento | `node tests/world-saves-performance.cjs` | Edge e PHP local; cria arquivos temporários isolados |
 | Menu de salvar e continuar | `node tests/world-saves-menu.cjs` | XAMPP; cria e remove um mundo de teste na pasta definitiva |
 | Leitura de mundos já migrados | `node tests/world-saves-existing.cjs` | XAMPP e mundos existentes; não grava alterações nesses mundos |

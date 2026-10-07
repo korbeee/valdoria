@@ -302,6 +302,34 @@ const MENU_CSS = `
 #menu-root .saved-world{display:flex;flex-direction:column;align-items:flex-start;gap:10px;white-space:normal;text-align:left;padding:18px}
 #menu-root .saved-world strong{color:#f0c978;font-size:14px}
 #menu-root .saved-world small{font-size:10px;line-height:1.7;color:#aab4c0}
+#menu-root .saved-world-row{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;min-width:0;background:#293139;border:2px solid #53606b}
+#menu-root .saved-world-row:hover,#menu-root .saved-world-row:focus-within{border-color:#bda16b;background:#303942}
+#menu-root .saved-world-row .saved-world{width:100%;min-width:0;overflow-wrap:anywhere;background:transparent;border:0;box-shadow:none;margin:0;padding:20px;gap:8px}
+#menu-root .menu-list .saved-world-row small{color:#aab4c0;float:none;font-size:10px}
+#menu-root .menu-list .saved-world-row .save-date{color:#8e9ba8;font-size:9px}
+#menu-root .menu-list .saved-world-row .btn::before{display:none}
+#menu-root .saved-world-actions{display:flex;justify-content:flex-end;gap:10px;flex-wrap:wrap}
+#menu-root .saved-world-actions .btn{font-size:10px;padding:10px 14px;min-width:0}
+#menu-root .saved-world-row>.saved-world-actions{padding:14px;gap:6px}
+#menu-root .saved-world-actions .world-tool{display:grid;place-items:center;width:36px;height:36px;padding:0;border:1px solid transparent;background:transparent;box-shadow:none;color:#abb7c1}
+#menu-root .saved-world-actions .world-tool:hover{border-color:#70808d;background:#394650;color:#ffd27a}
+#menu-root .world-danger{color:#f6aba0}
+#menu-root .world-danger:hover,#menu-root .world-tool.world-danger:hover{color:#ffd4cc;background:#55333b;border-color:#a96562}
+#menu-root .world-edit-backdrop{position:fixed;inset:0;background:rgba(5,9,14,.8);z-index:70}
+#menu-root .panel.saved-world-editor{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);width:min(480px,calc(100vw - 48px));max-height:calc(100vh - 48px);z-index:71;box-shadow:0 0 0 3px #0a0c0f,0 0 0 6px #56616b,0 0 0 9px #0a0c0f}
+#menu-root .saved-world-editor .panel-head{flex-shrink:0}
+#menu-root .saved-world-editor h2{color:#f0c978;line-height:1.5}
+#menu-root .saved-world-editor .world-edit-name{margin-top:8px;color:#e0a44a;font:11px/1.8 Silkscreen,monospace;overflow-wrap:anywhere}
+#menu-root .saved-world-editor .world-edit-body{display:flex;flex-direction:column;gap:14px;padding:24px;overflow:auto;min-height:0}
+#menu-root .saved-world-editor label{font:12px/1.8 Silkscreen,monospace;color:#b8c3cc;overflow-wrap:anywhere}
+#menu-root .saved-world-editor input{width:100%;min-width:0;padding:12px;background:#121a21;color:#efe6d2;border:2px solid #72818e;font:14px/1.8 Silkscreen,monospace;user-select:text;border-radius:0}
+#menu-root .saved-world-editor input:focus{outline:2px solid #ffd27a;outline-offset:2px}
+#menu-root .saved-world-editor p{margin:0;font:12px/1.8 Silkscreen,monospace;color:#b8bec5}
+#menu-root .saved-world-editor .saved-world-actions{gap:8px;flex-shrink:0}
+#menu-root .saved-world-editor .world-edit-confirm{color:#ffd27a;border-color:#9e875e}
+#menu-root .saved-world-editor .world-edit-confirm.world-danger{color:#ffb4a7;border-color:#a96562;background:#4b2e32}
+@media(max-width:480px){#menu-root .saved-world-row{grid-template-columns:minmax(0,1fr)}#menu-root .saved-world-row>.saved-world-actions{padding:0 14px 12px}#menu-root .saved-world-row .saved-world{padding:16px}#menu-root .saved-world-editor .world-edit-body{padding:20px}#menu-root .saved-world-editor .panel-head h2{font-size:16px}}
+#menu-root .saved-world-editor .save-error{color:#f59c8e}
 #menu-root .save-error{color:#f59c8e}
 #menu-root .screen{position:absolute;inset:0;display:grid;place-items:center;padding:24px;overflow:auto}
 #menu-root .screen.dim{background:rgba(6,8,11,.74)}
@@ -762,7 +790,17 @@ const Menu = {
     window.addEventListener('keydown', (e) => {
       if(WorldSaves.screenSaving){e.preventDefault();e.stopImmediatePropagation();return;}
       if (root.hidden) return;
-      if (e.code === 'Escape') { e.preventDefault(); this.escape(); }
+      const editor=root.querySelector('.saved-world-editor');
+      if(editor&&e.code==='Tab'){
+        const controls=[...editor.querySelectorAll('input,button')].filter(el=>!el.disabled),first=controls[0],last=controls.at(-1);
+        if(e.shiftKey&&(e.target===first||!editor.contains(e.target))){e.preventDefault();last?.focus();}
+        else if(!e.shiftKey&&(e.target===last||!editor.contains(e.target))){e.preventDefault();first?.focus();}
+        e.stopImmediatePropagation();return;
+      }
+      if (e.code === 'Escape' && root.querySelector('.saved-world-editor')) {
+        e.preventDefault();root.querySelector('.saved-world-editor .world-edit-cancel')?.click();
+      }
+      else if (e.code === 'Escape') { e.preventDefault(); this.escape(); }
       else if (e.code === 'KeyP' && this.current() === 'pause') this.resume();
       else if (e.code === 'Enter' && e.target.id === 'cc-name') e.target.blur();
       else this.screenKey(e);
@@ -898,6 +936,8 @@ const Menu = {
         break;
       case 'continue-worlds': WorldSaves.showList(); break;
       case 'load-world': WorldSaves.load(btn.dataset.worldId).catch(() => {}); break;
+      case 'rename-world': WorldSaves.editWorld(btn.dataset.worldId,'rename'); break;
+      case 'delete-world': WorldSaves.editWorld(btn.dataset.worldId,'delete'); break;
       case 'save-world':
         btn.disabled=true;
         WorldSaves.saveWithScreen().catch(() => {}).finally(() => {btn.disabled=false;});

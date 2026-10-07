@@ -642,6 +642,18 @@ function endSmart() {
   game.smartSlot = null;
 }
 
+// Clique direito em porta, baú ou cadeira. Armas, tridente, arco e puçá saem de handleInteraction antes do
+// trecho que trata essas peças, então chamam isto por conta própria. Devolve true se tratou o clique.
+function rightClickFurniture(tx, ty, rightPressed, inRange) {
+  if (!rightPressed || !inRange) return false;
+  const tile = world.getTile(tx, ty);
+  if (isDoor(tile)) toggleDoor(tx, ty);
+  else if (tile === TILE.CHEST) openChest(tx, ty);
+  else if (TILE_DEFS[tile].sentar) player.sitOn(world, tx, ty, chairFacing(world, tx, ty));
+  else return false;
+  return true;
+}
+
 function handleInteraction(dt) {
   game.smartCursor = input.down('ControlLeft') || input.down('ControlRight'); // só enquanto segura o Ctrl
   const m = screenToWorld(input.mouse.x, input.mouse.y);
@@ -657,6 +669,10 @@ function handleInteraction(dt) {
     mining.progress = 0;
     game.swinging = false;
     return;
+  }
+
+  if (sharkMouseAction(game, m, rightPressed)) {
+    endSmart(); mining.progress = 0; game.swinging = false; game.target.visible = false; return;
   }
 
   // Cursor inteligente: não mexe quando o jogador está usando o item da mão com o botão direito
@@ -745,8 +761,7 @@ function handleInteraction(dt) {
     game.swinging = false;
     game.target.visible = false;
     mining.progress = 0;
-    if (rightPressed && inRange && isDoor(world.getTile(tx, ty))) toggleDoor(tx, ty);
-    else updateTridentInput(game, dt, m, rightPressed);
+    if (!rightClickFurniture(tx, ty, rightPressed, inRange)) updateTridentInput(game, dt, m, rightPressed);
     return;
   }
 
@@ -755,6 +770,7 @@ function handleInteraction(dt) {
     game.swinging = false;
     game.target.visible = false;
     mining.progress = 0;
+    rightClickFurniture(tx, ty, rightPressed, inRange);
     updateBowInput(game, dt, m);
     return;
   }
@@ -765,6 +781,7 @@ function handleInteraction(dt) {
     game.target.visible = false;
     mining.progress = 0;
     if (input.mouse.left) startSwordSwing(game, heldDef, m.x, m.y);
+    rightClickFurniture(tx, ty, rightPressed, inRange);
     return;
   }
   if (rightPressed && inRange && game.placeCooldown <= 0 && heldDef?.criatura) {
@@ -779,7 +796,7 @@ function handleInteraction(dt) {
     game.target.visible = false;
     mining.progress = 0;
     if (input.mouse.left) startSwordSwing(game, heldDef, m.x, m.y);
-    if (rightPressed && inRange && isDoor(world.getTile(tx, ty))) toggleDoor(tx, ty);
+    rightClickFurniture(tx, ty, rightPressed, inRange);
     return;
   }
 
@@ -900,6 +917,7 @@ input.onKeyDown = (e, repeat) => {
   if(game.intro?.active||game.paused||game.npcOpen)return;
   if(game.inventoryUI.typeKey(e))return; // busca do livro de receitas: a tecla vira texto
   if(repeat)return;                      // os atalhos do jogo não repetem enquanto a tecla fica presa
+  if (sharkKeyAction(game, e.code)) { e.preventDefault(); return; }
   if(e.code==='KeyJ'){NpcServices.open(game);return;}
   if(e.code==='KeyB'){Bestiary.open(game);return;} // js/bestiary.js
   if(e.code==='KeyG'){ItemGuide.open(game);return;}

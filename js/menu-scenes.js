@@ -46,7 +46,7 @@ function menuRealStep(ms) {
 }
 function menuRelease() { // o jogo começou: solta tudo que era só do menu
   if (!MENU.cab && !MENU.realW && !MENU.real) return;
-  MENU.cab = MENU.inf = MENU.real = MENU.realW = MENU.realGen = null; MENU.bgs.clear(); MENU.scene = null; MENU.mobs = []; MENU.particles = []; MENU.npcs = [];
+  MENU.still = null; MENU.cab = MENU.inf = MENU.real = MENU.realW = MENU.realGen = null; MENU.bgs.clear(); MENU.scene = null; MENU.mobs = []; MENU.particles = []; MENU.npcs = [];
   if (MENU.fx?.canvas) { MENU.fx.canvas.width = MENU.fx.canvas.height = 1; }
 }
 
@@ -378,11 +378,118 @@ function menuBegin(M, g, scene) {
 }
 
 // ---------------------------------------------------------------- desenho
+// Fundo PARADO: uma única imagem (a cabana ao entardecer), montada uma vez pelo motor e guardada em
+// um canvas; depois disso o menu só repinta essa figura, sem custo nenhum de simulação.
+// Para voltar às cinemáticas que se alternam, é só trocar MENU_STILL.on para false.
+// `diorama`: pintura de pixel art de js/menu-scene.js, com algumas peças animadas (false = a cena `scene` do motor, parada);
+// anchorX/Y: que parte da arte fica à mostra quando a janela não é 16:9.
+const MENU_STILL = { on: true, diorama: true, anchorX: 0.74, anchorY: 0.6, scene: 'cabana', u: 0.52, warm: 90 };
+
+// guarda o estado do jogo, deixa `fn` mexer à vontade e devolve tudo no final
+function menuWithGameState(rend, g, fn) {
+  const keep = { fz: g.adminFreezeWeather, oc: g.openingComplete, god: g.adminGod, toast, crash: g.crashSite, npcs: g.npcs, world: g.world, gworld: world, cam: g.cam, zoom: g.zoom, time: g.time, daylight: g.daylight, weather: g.weather, intro: g.intro, mobs: g.mobs, particles: g.particles, player: g.player, bg: rend.bg, shake: g.shake, lastDaylight: g.lastDaylight, drops: g.drops, fall: g.fallingTrees, nv: g.adminNightVision, sfx: playSfx };
+  try {
+    playSfx = () => {}; toast = () => {};                  // o menu é mudo: nada de passos, respingos e avisos
+    return fn();
+  } finally {
+    rend._menuPass = false;
+    playSfx = keep.sfx; toast = keep.toast; g.adminFreezeWeather = keep.fz; g.openingComplete = keep.oc; g.adminGod = keep.god;
+    g.crashSite = keep.crash; g.npcs = keep.npcs; g.world = keep.world; world = keep.gworld; g.cam = keep.cam; g.zoom = keep.zoom; g.time = keep.time; g.daylight = keep.daylight; g.weather = keep.weather; g.intro = keep.intro;
+    g.mobs = keep.mobs; g.particles = keep.particles; g.player = keep.player; rend.bg = keep.bg; g.shake = keep.shake; g.lastDaylight = keep.lastDaylight; g.drops = keep.drops; g.fallingTrees = keep.fall; g.adminNightVision = keep.nv;
+  }
+}
+
+// Um quadro da cena S no instante u (0..1): simula `dt` e, se `draw`, pinta no canvas já com o shader.
+// Precisa rodar dentro de menuWithGameState.
+function menuStepFrame(rend, g, M, S, u, dt, fade, draw) {
+  const W = rend.canvas.width, H = rend.canvas.height, w = M.w;
+  g.world = world = w; g.intro = null; g.shake = 0; g.adminNightVision = false; g.drops = []; g.fallingTrees = []; g.crashSite = null;
+  g.npcs = M.npcs; g.mobs = M.mobs; g.particles = M.particles; g.player = M.player; g.weather = M.weather; rend.bg = M.bgs.get(w);
+  // clima da cena (suave)
+  g.adminFreezeWeather = true; g.openingComplete = true; g.adminGod = true;
+  // hora do dia
+  g.time = S.time(u); g.daylight = Math.max(daylightAt(g.time), S.moon || 0);
+  // câmera
+  const C = M.sc.cam, tiles = C.tiles ?? 60;
+  g.zoom = clamp(Math.round(W / (tiles * T) * 4) / 4, 1.25, 4);
+  const vw = W / g.zoom, vh = H / g.zoom, e = u * u * (3 - 2 * u);
+  g.cam = { x: (C.fx + (C.drift?.[0] || 0) * (e - 0.5)) * T - vw * C.sx, y: (C.fy + (C.drift?.[1] || 0) * (e - 0.5)) * T - vh * C.sy };
+  // luz
+  const lcx = Math.floor((g.cam.x + vw / 2) / T), lcy = Math.floor((g.cam.y + vh / 2) / T);
+  if (w.lightDirty || Math.abs(lcx - (M.lightFor?.[0] ?? -1e9)) > 36 || Math.abs(lcy - (M.lightFor?.[1] ?? -1e9)) > 20) { w.computeLight(lcx, lcy); w.lightDirty = false; M.lightFor = [lcx, lcy]; M.day = -1; }
+  if (Math.abs(g.daylight - M.day) > 0.004) { w.composeLight(g.daylight); M.day = g.daylight; }
+  g.lastDaylight = g.daylight;
+  // vida
+  const far = menuPark(M);
+  for (const m of M.mobs) if (!m.dead) m.update(dt, w, far);
+  for (const v of M.npcs) v.update(dt, w, far);
+  S.update?.(M, w, dt, u);
+  M.player.visualTime += dt;
+  if (M.player.seat) M.player.updateSeat(dt, w, false); else if (!M.sc.manual && S.id !== 'cabana' && !(S.id === 'savana')) M.player.update(dt, M.inp, w);
+  updateWeather(g, dt); updateSnowWeather(g, dt);
+  updateAmbientLeaves(g, dt); updateParticles(dt);
+  if (!draw) return;
+  // desenho pelo motor do jogo (sem a interface)
+  rend._menuPass = true; rend.render(g); rend._menuPass = false;
+  const ctx = rend.ctx, z = g.zoom, ox = Math.round(g.cam.x * z), oy = Math.round(g.cam.y * z);
+  ctx.setTransform(z, 0, 0, z, -ox, -oy);
+  if (S.id === 'cabana') {                               // vagalumes (depois da luz: brilham no escuro)
+    const dark = clamp(1 - g.daylight * 1.1, 0.15, 1);
+    for (const f of M.fireflies) { const a = (0.5 + 0.5 * Math.sin(M.t * 2.2 + f.ph * 3)) * dark; if (a < 0.08) continue; ctx.fillStyle = `rgba(210,255,140,${a * 0.22})`; ctx.fillRect(Math.round(f.x * T) - 2, Math.round(f.y * T) - 2, 5, 5); ctx.fillStyle = `rgba(240,255,190,${a})`; ctx.fillRect(Math.round(f.x * T), Math.round(f.y * T), 1, 1); }
+  }
+  S.after?.(ctx, M, g, M.t);
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  // legibilidade do texto do menu (lado esquerdo)
+  const gl = ctx.createLinearGradient(0, 0, W * 0.5, 0); gl.addColorStop(0, 'rgba(5,9,14,.74)'); gl.addColorStop(1, 'rgba(5,9,14,0)'); ctx.fillStyle = gl; ctx.fillRect(0, 0, W, H);
+  // shader cinematográfico
+  const out = M.fx.process(rend.canvas, { ...MENU_FX_BASE, ...S.fx, ...(M.dev?.fx || {}), fade });
+  if (out) ctx.drawImage(out, 0, 0);
+  else if (fade < 1) { ctx.fillStyle = `rgba(0,0,0,${1 - fade})`; ctx.fillRect(0, 0, W, H); }
+}
+
+// Imagem parada: aquece a cena (fumaça, fogueira, bichos se acomodam), tira UMA foto e a guarda
+function menuRenderStill(rend, g, W, H) {
+  const M = MENU;
+  if (M.still && M.still.width === W && M.still.height === H) { rend.ctx.setTransform(1, 0, 0, 1, 0, 0); rend.ctx.drawImage(M.still, 0, 0); return true; }
+  // Pintura de pixel art montada com a arte do jogo (js/menu-scene.js: árvores, a casa das vilas, fogueira, queda d'água...),
+  // em 640x360 e ampliada em pixels inteiros. Não é o mundo rodando: nada simula, só algumas peças se mexem
+  // (nuvens, queda d'água, pingos nas estalactites, fogueira, fumaça, vaga-lumes...).
+  if (MENU_STILL.diorama && !M.dioramaFail) {
+    try {
+      const ctx = rend.ctx;
+      if (M.dioLast && typeof Menu !== 'undefined' && Menu.current?.() === 'loading') return true;   // gerando o mundo: deixa o último quadro e poupa CPU
+      const base = M.dioBase ??= makeCanvas(MENU_W, MENU_H + MENU_PAD);
+      drawBravoraMenu(base.getContext('2d'), MENU_W, MENU_H + MENU_PAD);
+      const k = Math.max(1, Math.ceil(Math.max(W / MENU_W, H / (MENU_H + MENU_PAD)))), dw = MENU_W * k, dh = (MENU_H + MENU_PAD) * k;
+      ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.imageSmoothingEnabled = false;
+      ctx.drawImage(base, Math.round(-(dw - W) * MENU_STILL.anchorX), Math.round(-(dh - H) * MENU_STILL.anchorY), dw, dh);
+      if (M.dioGradW !== W) { M.dioGradW = W; M.dioGrad = ctx.createLinearGradient(0, 0, W * 0.52, 0); M.dioGrad.addColorStop(0, 'rgba(8,10,24,.66)'); M.dioGrad.addColorStop(1, 'rgba(8,10,24,0)'); }
+      ctx.fillStyle = M.dioGrad; ctx.fillRect(0, 0, W, H);                                            // legibilidade do texto
+      M.dioLast = true;
+      return true;
+    } catch (e) { console.warn('[menu] diorama indisponível, usando a cena do motor:', e); M.dioramaFail = true; }
+  }
+  if (!M.fx) M.fx = new MenuFX();
+  const scene = MENU_SCENES.find((s) => s.id === MENU_STILL.scene && s.world === 'cab') || MENU_SCENES[0];
+  const u = MENU_STILL.u;
+  try {
+    menuBegin(M, g, scene);
+    M.sceneT = u * scene.dur;
+    menuWithGameState(rend, g, () => {
+      for (let i = 0; i < MENU_STILL.warm; i++) { M.t += 0.05; menuStepFrame(rend, g, M, scene, u, 0.05, 1, i === MENU_STILL.warm - 1); }
+    });
+  } catch (e) { console.warn('[menu] erro na imagem do menu, voltando à antiga:', e); M.failed = true; return false; }
+  const still = makeCanvas(W, H); still.getContext('2d').drawImage(rend.canvas, 0, 0);
+  M.still = still;
+  return true;
+}
+
 function renderLiveMenu(rend, g) {
   const M = MENU;
   if (M.failed || g.intro?.started) return false;
   const W = rend.canvas.width, H = rend.canvas.height;
   if (W < 2 || H < 2) return false;
+  if (MENU_STILL.on) return menuRenderStill(rend, g, W, H);
   const loading = typeof Menu !== 'undefined' && Menu.current?.() === 'loading';
   if (loading && M.scene) return true;                     // gerando o mundo de verdade: deixa o último quadro parado e poupa CPU
   const now = performance.now(), dt = Math.min(0.05, M.last ? (now - M.last) / 1000 : 0.016); M.last = now; M.t += dt;
@@ -394,53 +501,11 @@ function renderLiveMenu(rend, g) {
   M.sceneT += dt;
   const sc = M.scene, dur = M.dev?.freeze ? 1e9 : sc.dur;
   if (M.sceneT >= dur + 1.0 || (M.dev?.next)) { M.dev && (M.dev.next = false); menuBegin(M, g, menuPickScene(M)); }
-  const S = M.scene, u = clamp(M.sceneT / S.dur, 0, 1), w = M.w;
+  const S = M.scene, u = clamp(M.sceneT / S.dur, 0, 1);
   const fade = clamp(Math.min(M.sceneT / 1.4, (S.dur + 1.0 - M.sceneT) / 1.0), 0, 1);
-
-  const keep = { fz: g.adminFreezeWeather, oc: g.openingComplete, god: g.adminGod, toast, crash: g.crashSite, npcs: g.npcs, world: g.world, gworld: world, cam: g.cam, zoom: g.zoom, time: g.time, daylight: g.daylight, weather: g.weather, intro: g.intro, mobs: g.mobs, particles: g.particles, player: g.player, bg: rend.bg, shake: g.shake, lastDaylight: g.lastDaylight, drops: g.drops, fall: g.fallingTrees, nv: g.adminNightVision, sfx: playSfx };
   try {
-    playSfx = () => {}; toast = () => {};                  // o menu é mudo: nada de passos, respingos e avisos
-    g.world = world = w; g.intro = null; g.shake = 0; g.adminNightVision = false; g.drops = []; g.fallingTrees = []; g.crashSite = null;
-    g.npcs = M.npcs; g.mobs = M.mobs; g.particles = M.particles; g.player = M.player; g.weather = M.weather; rend.bg = M.bgs.get(w);
-    // clima da cena (suave)
-    g.adminFreezeWeather = true; g.openingComplete = true; g.adminGod = true;
-    // hora do dia
-    g.time = S.time(u); g.daylight = Math.max(daylightAt(g.time), S.moon || 0);
-    // câmera
-    const C = M.sc.cam, tiles = C.tiles ?? 60;
-    g.zoom = clamp(Math.round(W / (tiles * T) * 4) / 4, 1.25, 4);
-    const vw = W / g.zoom, vh = H / g.zoom, e = u * u * (3 - 2 * u);
-    g.cam = { x: (C.fx + (C.drift?.[0] || 0) * (e - 0.5)) * T - vw * C.sx, y: (C.fy + (C.drift?.[1] || 0) * (e - 0.5)) * T - vh * C.sy };
-    // luz
-    const lcx = Math.floor((g.cam.x + vw / 2) / T), lcy = Math.floor((g.cam.y + vh / 2) / T);
-    if (w.lightDirty || Math.abs(lcx - (M.lightFor?.[0] ?? -1e9)) > 36 || Math.abs(lcy - (M.lightFor?.[1] ?? -1e9)) > 20) { w.computeLight(lcx, lcy); w.lightDirty = false; M.lightFor = [lcx, lcy]; M.day = -1; }
-    if (Math.abs(g.daylight - M.day) > 0.004) { w.composeLight(g.daylight); M.day = g.daylight; }
-    g.lastDaylight = g.daylight;
-    // vida
-    const far = menuPark(M);
-    for (const m of M.mobs) if (!m.dead) m.update(dt, w, far);
-    for (const v of M.npcs) v.update(dt, w, far);
-    S.update?.(M, w, dt, u);
-    M.player.visualTime += dt;
-    if (M.player.seat) M.player.updateSeat(dt, w, false); else if (!M.sc.manual && S.id !== 'cabana' && !(S.id === 'savana')) M.player.update(dt, M.inp, w);
-    updateWeather(g, dt); updateSnowWeather(g, dt);
-    updateAmbientLeaves(g, dt); updateParticles(dt);
-    // desenho pelo motor do jogo (sem a interface)
-    rend._menuPass = true; rend.render(g); rend._menuPass = false;
-    const ctx = rend.ctx, z = g.zoom, ox = Math.round(g.cam.x * z), oy = Math.round(g.cam.y * z);
-    ctx.setTransform(z, 0, 0, z, -ox, -oy);
-    if (S.id === 'cabana') {                               // vagalumes (depois da luz: brilham no escuro)
-      const dark = clamp(1 - g.daylight * 1.1, 0.15, 1);
-      for (const f of M.fireflies) { const a = (0.5 + 0.5 * Math.sin(M.t * 2.2 + f.ph * 3)) * dark; if (a < 0.08) continue; ctx.fillStyle = `rgba(210,255,140,${a * 0.22})`; ctx.fillRect(Math.round(f.x * T) - 2, Math.round(f.y * T) - 2, 5, 5); ctx.fillStyle = `rgba(240,255,190,${a})`; ctx.fillRect(Math.round(f.x * T), Math.round(f.y * T), 1, 1); }
-    }
-    S.after?.(ctx, M, g, M.t);
-    ctx.setTransform(1, 0, 0, 1, 0, 0);
-    // legibilidade do texto do menu (lado esquerdo)
-    const gl = ctx.createLinearGradient(0, 0, W * 0.5, 0); gl.addColorStop(0, 'rgba(5,9,14,.74)'); gl.addColorStop(1, 'rgba(5,9,14,0)'); ctx.fillStyle = gl; ctx.fillRect(0, 0, W, H);
-    // shader cinematográfico
-    const out = M.fx.process(rend.canvas, { ...MENU_FX_BASE, ...S.fx, ...(M.dev?.fx || {}), fade });
-    if (out) ctx.drawImage(out, 0, 0);
-    else if (fade < 1) { ctx.fillStyle = `rgba(0,0,0,${1 - fade})`; ctx.fillRect(0, 0, W, H); }
+    menuWithGameState(rend, g, () => menuStepFrame(rend, g, M, S, u, dt, fade, true));
+    const ctx = rend.ctx;
     // legenda da cena
     const ca = clamp(Math.min(M.sceneT - 1.2, S.dur - 1 - M.sceneT) / 1.0, 0, 1) * 0.85;
     if (ca > 0.01) {
@@ -451,11 +516,7 @@ function renderLiveMenu(rend, g) {
     return true;
   } catch (e) {
     if (!M.failed) console.warn('[menu] erro na cena viva, voltando à antiga:', e);
-    M.failed = true; rend._menuPass = false;
+    M.failed = true;
     return false;
-  } finally {
-    playSfx = keep.sfx; toast = keep.toast; g.adminFreezeWeather = keep.fz; g.openingComplete = keep.oc; g.adminGod = keep.god;
-    g.crashSite = keep.crash; g.npcs = keep.npcs; g.world = keep.world; world = keep.gworld; g.cam = keep.cam; g.zoom = keep.zoom; g.time = keep.time; g.daylight = keep.daylight; g.weather = keep.weather; g.intro = keep.intro;
-    g.mobs = keep.mobs; g.particles = keep.particles; g.player = keep.player; rend.bg = keep.bg; g.shake = keep.shake; g.lastDaylight = keep.lastDaylight; g.drops = keep.drops; g.fallingTrees = keep.fall; g.adminNightVision = keep.nv;
   }
 }

@@ -3,6 +3,65 @@ declare(strict_types=1);
 
 const WORLD_SECTIONS = ['Terreno'=>'terreno','Personagem'=>'personagem','Itens'=>'itens','Criaturas'=>'criaturas','Mapa'=>'mapa','Progresso'=>'progresso'];
 
+function worldDeleted(string $directory, string $id): bool {
+    return is_file($directory . '/Sistema/Excluidos/' . $id . '.json');
+}
+function renameSavedWorld(string $directory, string $id, string $name): array {
+    if (worldDeleted($directory, $id)) throw new RuntimeException('Este mundo foi excluído.');
+    $folder = findWorldFolder($directory, $id); $meta = null;
+    if ($folder) {
+        checkedWorldTree($directory, $folder);
+        // Altera apenas os índices; terreno, personagem e itens permanecem intactos.
+        $updates = [];
+        foreach (manifestCandidates($folder) as $file) {
+            try { $manifest = manifestAt($file, $id); } catch (Throwable $e) { continue; }
+            $manifest['meta']['name'] = $name; $updates[$file] = $manifest; $meta ??= $manifest['meta'];
+        }
+        foreach (array_reverse($updates, true) as $file => $manifest) atomicWrite($file, json_encode($manifest, JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR));
+    } else {
+        $base = $directory . '/' . $id;
+        foreach (['.valdoria', '.valdoria.bak'] as $suffix) {
+            try { $save = checkedSave(@file_get_contents($base . $suffix) ?: '', $id); } catch (Throwable $e) { continue; }
+            $save['meta']['name'] = $name; $meta ??= $save['meta'];
+            atomicWrite($base . $suffix, gzencode(json_encode($save, JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR), 6));
+        }
+        if ($meta) atomicWrite($base . '.json', json_encode($meta, JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR));
+    }
+    if (!$meta) throw new RuntimeException('Mundo não encontrado.');
+    return $meta;
+}
+function checkedWorldTree(string $directory, string $folder): void {
+    $base = realpath($directory); $target = realpath($folder);
+    $normalize = fn($path) => strtolower(str_replace('\\', '/', $path));
+    if (!$base || !$target || dirname($normalize($target)) !== $normalize($base) || basename($target) === 'Sistema' || is_link($folder)) throw new RuntimeException('Pasta de mundo inválida.');
+    $entries = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($folder, FilesystemIterator::SKIP_DOTS), RecursiveIteratorIterator::SELF_FIRST);
+    foreach ($entries as $entry) if ($entry->isLink() || !str_starts_with($normalize($entry->getRealPath() ?: ''), $normalize($target) . '/')) throw new RuntimeException('A pasta contém um caminho não permitido.');
+}
+function removeWorldTree(string $folder): void {
+    $entries = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($folder, FilesystemIterator::SKIP_DOTS), RecursiveIteratorIterator::CHILD_FIRST);
+    foreach ($entries as $entry) {
+        if ($entry->isDir()) { if (!@rmdir($entry->getPathname())) throw new RuntimeException('Não foi possível remover uma pasta do mundo.'); }
+        elseif (!@unlink($entry->getPathname())) throw new RuntimeException('Não foi possível remover um arquivo do mundo.');
+    }
+    if (!@rmdir($folder)) throw new RuntimeException('Não foi possível remover a pasta do mundo.');
+}
+function deleteSavedWorld(string $directory, string $id): void {
+    if (worldDeleted($directory, $id)) return;
+    $folder = findWorldFolder($directory, $id); $base = $directory . '/' . $id;
+    $legacy = array_filter(array_map(fn($suffix) => $base . $suffix, ['.valdoria','.valdoria.bak','.json']), 'is_file');
+    if (!$folder && !$legacy) throw new RuntimeException('Mundo não encontrado.');
+    if ($folder) checkedWorldTree($directory, $folder);
+    foreach ($legacy as $file) if (is_link($file)) throw new RuntimeException('Arquivo de mundo inválido.');
+    $trash = $directory . '/Sistema/Excluidos'; makeDirectory($trash);
+    // Retira da lista antes da limpeza e bloqueia saves antigos que recriariam o mundo.
+    $removed = $trash . '/' . $id . '-' . bin2hex(random_bytes(6));
+    if ($folder && !@rename($folder, $removed)) throw new RuntimeException('Não foi possível excluir o mundo.');
+    try { atomicWrite($trash . '/' . $id . '.json', json_encode(['id'=>$id,'deletedAt'=>gmdate('c')], JSON_THROW_ON_ERROR)); }
+    catch (Throwable $e) { if ($folder) @rename($removed, $folder); throw $e; }
+    if ($folder) removeWorldTree($removed);
+    foreach ($legacy as $file) if (!@unlink($file)) throw new RuntimeException('Não foi possível remover um arquivo antigo do mundo.');
+}
+
 function makeDirectory(string $path): void {
     if (!is_dir($path) && !@mkdir($path, 0777, true) && !is_dir($path)) throw new RuntimeException('Não foi possível criar a pasta de salvamento.');
 }
@@ -142,6 +201,7 @@ function migrateLegacyWorlds(string $directory): int {
     }
     $count = 0;
     foreach (array_keys($ids) as $id) {
+        if (worldDeleted($directory, $id)) continue;
         $lock = worldLock($directory, $id, LOCK_EX);
         try {
             $base = $directory . '/' . $id; $main = null; $oldBackup = null;

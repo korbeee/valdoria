@@ -3,6 +3,7 @@
 // Ajuda do canto de baixo (tecla H): duas colunas de [teclas, o que faz]
 const HELP_ROWS = [
   [['A', 'D'], 'andar'],
+  [['Shift'], 'correr (segurar)'],
   [['Espaço'], 'pular'],
   [['S'], 'agachar'],
   [['Ctrl'], 'cursor inteligente'],
@@ -124,8 +125,9 @@ class Renderer {
     else this.drawPlayer(game.player, pose, game.sword, game);
     if (pose) this.drawSwordArm(pose);
     else if(game.toolAction&&!ITEM_DEFS[game.inventory.slots[game.selected]?.item]?.fishingRod)drawToolAction(ctx,game,this.tex.itemAtlas);   // a vara nunca some atrás de uma ação de ferramenta esquecida
-    else if(!game.intro?.active&&Math.abs(game.player.swimTilt||0)<0.3&&Math.abs(game.player.flightTilt||0)<.3&&!game.player.gag)this.drawHeldItem(game); // deitado: item guardado
+    else if(!game.intro?.active&&Math.abs(game.player.swimTilt||0)<0.3&&Math.abs(game.player.flightTilt||0)<.3&&!game.player.gag&&!game.player.climbing)this.drawHeldItem(game); // na escada as duas mãos estão ocupadas // deitado: item guardado
     if (game.mount && !game.intro?.active) drawWildlife(ctx, game.mount); // montado: o elefante cobre as pernas
+    if (!game.intro?.active) drawSharkHandling(ctx, game);
     this.drawParticles(game.particles);
     drawArrows(ctx, game);
     drawWater(ctx, game, vx, vy, vw, vh); // por cima de quem está dentro dela
@@ -174,7 +176,7 @@ class Renderer {
     ctx.setTransform(1, 0, 0, 1, 0, 0);
     ctx.globalAlpha = introHudAlpha(game);
     game.inventoryUI.drawVitals(ctx, game.player); // antes do inventário, que cobre a barra quando abre
-    this.drawUI(game, W, H);
+    this.drawUI(game, W, H, ox, oy);
     drawFlightHud(ctx,game);
     drawFishingHud(ctx,game,W,H);
     ctx.globalAlpha = 1;
@@ -399,7 +401,7 @@ class Renderer {
     const { ctx } = this;
     // Puxando o arco: quadro de golpe sem o braço da frente (os braços são desenhados pelo arco)
     const fishingFrame=typeof fishingBodyFrame==='function'?fishingBodyFrame(game):null;
-    const frame = pose ? playerAttackFrame(p, sword) : fishingFrame!=null?fishingFrame : game.trident?.anim ? tridentBodyFrame(game) : game.toolAction ? toolBodyFrame(game) : game.bow?.charging ? (p.crouching ? PLAYER_ANIMS.crawlAttack : PLAYER_ANIMS.attack + 2) : Math.abs(p.flightTilt||0)>.02 ? PLAYER_ANIMS.flightSide+Math.floor((p.visualTime||0)*8)%8 : playerFrame(p);
+    const frame = cleaningShark(game) ? sharkCleanFrame(game) : pose ? playerAttackFrame(p, sword) : fishingFrame!=null?fishingFrame : game.trident?.anim ? tridentBodyFrame(game) : game.toolAction ? toolBodyFrame(game) : game.bow?.charging ? (p.crouching ? PLAYER_ANIMS.crawlAttack : PLAYER_ANIMS.attack + 2) : Math.abs(p.flightTilt||0)>.02 ? PLAYER_ANIMS.flightSide+Math.floor((p.visualTime||0)*8)%8 : playerFrame(p);
     const dx = Math.round(p.x + p.w / 2 - PLAYER_SPR_W / 2) + (pose ? pose.lunge : tridentLunge(game));
     const dy = Math.round(p.y + (p.stepOffset || 0) + p.h - PLAYER_SPR_H);
     const sx = frame * PLAYER_SPR_W;
@@ -481,12 +483,12 @@ class Renderer {
     const { ctx } = this;
     for (const m of mobs) {
       if (m === game.mount) continue; // desenhado depois do jogador
+      if (m.carcass && m.sharkCarrier) continue; // corpo no colo, diante dos braços
       if (!mobNearView(m, vx, vy, vw, vh)) continue; // chefes e bichos longe: nada apareceria na tela
       if (WILDLIFE[m.kind]) { drawWildlife(ctx, m); continue; }
       const frame = m.hostile ? monsterFrame(m) : pigFrame(m);
       const sprites=m.hostile?this.monsterSprites[m.kind]:(m.skin===1?this.pigSprites.cube:this.pigSprites);
-      const img = (m.hurtTimer > 0 || (m.fuse>0&&Math.sin(m.clock*(8+m.fuse*5))>0) ? sprites.hurt : sprites.frames)[frame];
-      if(m.fuse>0){ctx.font='9px monospace';ctx.fillStyle='#ffe1a0';ctx.fillText(Math.max(1,Math.ceil(BOMBER_FUSE-m.fuse))+'s',Math.round(m.cx-6),Math.round(m.y-5));}
+      const img = (m.hurtTimer > 0 ? sprites.hurt : sprites.frames)[frame];
       const dx = Math.round(m.x + m.w / 2 - img.width / 2);
       const dy = Math.round(m.y + m.stepOffset + m.h - img.height);
       if (m.facing < 0) {
@@ -503,6 +505,7 @@ class Renderer {
 
   // Ferramentas e armas aparecem na mão; balançam enquanto o botão esquerdo está segurado
   drawHeldItem(game) {
+    if (carriedShark(game) || cleaningShark(game)) return;
     const slot = game.inventory.slots[game.selected];
     if (!slot) return;
     const def = ITEM_DEFS[slot.item];
@@ -603,7 +606,7 @@ class Renderer {
     ctx.strokeRect(tx * T + 0.5 / z, ty * T + 0.5 / z, T - 1 / z, T - 1 / z);
   }
 
-  drawUI(game, W, H) {
+  drawUI(game, W, H, ox, oy) {
     const { ctx } = this;
     // Interface em pixels da tela, independente da escala de outros medidores.
     ctx.setTransform(1, 0, 0, 1, 0, 0);
@@ -632,6 +635,7 @@ class Renderer {
     ctx.font = '12px monospace';
     ctx.textAlign = 'left';
     this.helpTop = H - pad;
+    drawSharkHarvestHUD(ctx, game, W, H, ox, oy);
     if (game.showHelp) this.drawHelpPanel(W, H, pad);
 
     if (game.debug) {

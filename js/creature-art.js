@@ -85,35 +85,59 @@ function buildPigArt() {
     s.set(hx - 1, hy + 2, [255, 148, 162]); s.set(hx, hy + 2, [255, 148, 162]); s.set(hx + 3, hy + 4, PIG_PINK[0]);              // bochecha e boca
     frames.push(s.finish(PIG_OUTLINE));
   }
-  // Pelagem rara: porco QUADRADO (0,00002% de chance). Caixas de verdade: corpo comprido, cabeça cúbica mais baixa,
-  // focinho em bloco, quatro pernas curtas e grossas; cada face chapada, com a luz batendo em cima e sombra embaixo/atrás.
+  // Porco quadrado: caixas em perspectiva, focinho frontal largo e patas em blocos.
   const cube = [];
-  // Porco de caixas em 3/4: corpo-caixa baixo, cabeça-cubo de frente quase do tamanho do corpo, pernas curtas e grossas.
-  // Cada face é uma cor chapada (luz em cima, sombra do lado e embaixo).
-  const PK_TOP = [252, 188, 200], PK_FRONT = [236, 152, 166], PK_SIDE = [200, 114, 130], PK_DARK = [168, 88, 104], PK_LIGHT = [255, 214, 222];
+  const pink = [224, 153, 151], light = [249, 185, 180], top = [255, 199, 192];
+  const side = [177, 111, 110], shadow = [147, 88, 89], hoof = [107, 70, 70];
   for (let f = 0; f < 13; f++) {
-    const walk = f < 8, air = f === 12, ph = walk ? (f / 8) * Math.PI * 2 : 0, bob = walk ? Math.round((1 + Math.cos(ph * 2)) / 2) : 0;
-    const s = new Sprite(40, 28), by = 6 + bob;
-    const R = (x0, y0, w, h, c) => { for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) s.set(x0 + x, y0 + y, c); };
-    const topFace = (x0, y0, w, rows, shift) => { for (let r = 0; r < rows; r++) for (let x = 0; x < w; x++) s.set(x0 + x + Math.round((rows - 1 - r) * shift), y0 + r, r === 0 ? PK_LIGHT : PK_TOP); };
-    for (const [lx, far, off, front] of [[4, true, 0, 0], [11, true, Math.PI, 0], [23, false, Math.PI, 1], [31, false, 0, 1]]) {   // pernas
-      const p = ph + off, lift = walk ? Math.round(Math.max(0, -Math.sin(p)) * 2) : air ? 2 : 0, y0 = by + (front ? 16 : 13), h = 27 - y0 - lift + 1;
-      R(lx, y0, 5, h, far ? PK_SIDE : PK_FRONT); R(lx + 4, y0, 1, h, far ? PK_DARK : PK_SIDE);
-      R(lx, 26 - lift, 5, 2, [92, 80, 88]);                                       // casco
+    const walk = f < 8, air = f === 12, phase = walk ? f / 8 * Math.PI * 2 : 0;
+    const bob = walk ? Math.round(Math.abs(Math.sin(phase))) : f === 9 ? 1 : 0;
+    const s = new Sprite(46, 38), by = 12 + bob;
+    const R = (x, y, w, h, c) => { for (let yy = y; yy < y + h; yy++) for (let xx = x; xx < x + w; xx++) s.set(xx, yy, c); };
+    const leg = (x, far, offset) => {
+      const q = phase + offset, shift = walk ? Math.round(Math.cos(q) * 1.5) : air ? (x < 15 ? -1 : 1) : 0;
+      const lift = walk ? Math.round(Math.max(0, -Math.sin(q)) * 2) : air ? 2 : 0;
+      const lx = x + shift, bottom = (far ? 33 : 36) - lift;
+      R(lx, by + 12, 5, bottom - by - 11, far ? side : pink);
+      R(lx + 4, by + 12, 2, bottom - by - 11, far ? shadow : side);
+      R(lx + 1, by + 15, 2, 3, far ? [187, 122, 120] : [236, 165, 160]);
+      R(lx, bottom - 1, 4, 2, hoof); R(lx + 4, bottom - 1, 2, 2, shadow);
+      R(lx + 2, bottom, 1, 1, [83, 54, 57]);
+    };
+    leg(10, true, 0); leg(27, true, Math.PI);
+    // Corpo retangular: topo claro, lateral rosa e plano traseiro sombreado.
+    for (let y = 0; y < 4; y++) R(5 + 3 - y, by + y, 24, 1, y === 0 ? top : light);
+    R(5, by + 4, 24, 11, pink); R(5, by + 14, 24, 1, [204, 132, 131]);
+    R(29, by + 3, 3, 12, side);
+    for (const [x,y,w,h,c] of [[8,5,6,2,[231,161,156]],[17,4,7,2,[239,169,164]],
+      [6,10,5,2,[212,140,138]],[13,9,8,2,[233,161,157]],[22,11,5,2,[215,142,140]],
+      [10,13,7,1,[224,150,146]]]) R(x,by+y,w,h,c);
+    R(11,by+1,7,1,[255,207,198]); R(22,by+2,5,1,[243,178,172]);
+    // Pequeno rabinho cúbico no plano traseiro.
+    R(2,by+8,3,2,side); R(1,by+7,2,2,pink); R(2,by+6,2,1,light);
+    leg(6, false, Math.PI); leg(23, false, 0);
+    // Cabeça cúbica: plano lateral escuro e face clara voltada em três quartos.
+    R(27,by+3,4,13,side); R(28,by+5,2,5,[189,120,118]);
+    for (let y=0;y<3;y++) R(29+2-y,by+1+y,12,1,y===0?top:light);
+    R(29,by+4,13,12,light); R(29,by+15,13,1,pink);
+    R(29,by+5,2,9,[235,164,160]); R(39,by+11,3,3,[241,169,164]);
+    R(31,by+12,4,2,[250,181,173]);
+    // Olhos pequenos nas extremidades; focinho em bloco com duas narinas lado a lado.
+    for(const x of [30,38]) { R(x,by+7,3,3,[248,235,219]);R(x+1,by+7,2,3,[39,32,32]); }
+    R(33,by+10,10,2,[255,200,190]); R(32,by+12,11,5,[237,168,158]);
+    R(32,by+12,1,5,[191,119,114]); R(33,by+16,10,1,[205,134,125]);
+    R(34,by+13,2,2,[127,73,70]); R(39,by+13,2,2,[127,73,70]);
+    // Coroa encaixada no cubo: aro lateral, topo aberto e pedras vermelhas/azuis.
+    const gold=[232,185,39], shine=[255,230,113], goldSide=[161,116,26];
+    R(30,by-2,12,2,goldSide);
+    for(const x of [30,35,40]) {R(x,by-5,2,3,gold);R(x,by-5,1,1,shine);}
+    R(27,by,3,5,goldSide); R(28,by,1,4,gold);
+    R(29,by+2,14,3,gold); R(29,by+2,14,1,shine); R(29,by+5,14,1,[123,87,26]);
+    for(const x of [29,33,38,42]) {R(x,by-1,1,3,gold);R(x,by-1,1,1,shine);}
+    for(const [x,c,hi] of [[30,[43,89,169],[128,194,239]],[35,[170,42,40],[249,121,94]],[40,[43,89,169],[128,194,239]]]){
+      R(x,by+3,2,2,c);s.set(x,by+3,hi);
     }
-    topFace(2, by, 19, 3, 0.9);                                                   // dorso
-    R(2, by + 3, 20, 11, PK_FRONT); R(2, by + 13, 20, 1, PK_SIDE);                // lateral e sombra embaixo
-    for (const [x, y, w] of [[5, by + 5, 6], [5, by + 7, 4], [12, by + 6, 3]]) R(x, y, w, 1, PK_SIDE);   // riscos
-    R(19, by + 4, 4, 13, PK_SIDE);                                                // lado da cabeça
-    topFace(22, by + 1, 15, 3, 0.7);                                              // topo da cabeça
-    R(22, by + 4, 16, 14, PK_FRONT); R(22, by + 17, 16, 1, PK_SIDE);              // cara (cubo)
-    R(23, by - 2, 3, 3, PK_TOP); R(34, by - 2, 3, 3, PK_TOP); R(24, by - 1, 1, 1, PK_FRONT); R(35, by - 1, 1, 1, PK_FRONT);   // orelhas
-    for (const ex of [26, 32]) {                                                  // olhos olhando para a direita: branco atrÃ¡s, pupila na frente
-      R(ex, by + 8, 2, 3, [255, 255, 255]); R(ex + 2, by + 8, 2, 3, [50, 30, 70]);
-    }
-    R(34, by + 11, 6, 6, PK_LIGHT); R(34, by + 16, 6, 1, PK_TOP);                 // focinho empurrado para a direita (cara virada)
-    R(37, by + 12, 2, 2, [116, 56, 70]); R(37, by + 15, 2, 1, [116, 56, 70]);     // narinas na ponta
-    cube.push(s.finish(PIG_OUTLINE));
+    cube.push(s.finish([105, 67, 66]));
   }
   return { frames, hurt: frames.map(hurtFlash), cube: { frames: cube, hurt: cube.map(hurtFlash) } };
 }

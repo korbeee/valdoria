@@ -7,44 +7,49 @@
 
 // ---------------------------------------------------------------- Fenec (deserto e mesa)
 {
-  const pal = [[116, 82, 50], [168, 126, 80], [212, 176, 120], [238, 212, 162], [252, 240, 206]];
-  const legs = { fore: { L1: 4, L2: 4, w1: 2.2, w2: 1.6, pal, hoof: [70, 52, 38], paw: 2 }, hind: { L1: 4.2, L2: 4.2, w1: 2.6, w2: 1.8, pal, hoof: [70, 52, 38], paw: 2 } };
-  const head = { style: 'canine', skull: [4.2, 3.8], snout: { len: 4.2, h: 1.9, tipH: 1.1 }, ears: { style: 'point', h: 9, w: 5, dx: -0.2, lean: 1.2, inner: [236, 168, 170], pal: [[120, 86, 56], [186, 146, 98], [236, 208, 160]] }, eye: { dx: 1.9, dy: -0.4, big: true }, nose: [30, 24, 26], whisk: true };
+  const pal = [[133,95,60],[179,137,90],[214,177,123],[237,213,174],[255,244,220]];
+  const cream=[[155,135,110],[206,190,159],[237,225,201],[253,245,224],[255,250,235]];
+  const legs = { fore: { L1: 4, L2: 4, w1: 2.2, w2: 1.6, pal:cream, hoof: cream[2], paw: 2 }, hind: { L1: 4.2, L2: 4.2, w1: 2.6, w2: 1.8, pal:cream, hoof: cream[2], paw: 2 } };
+  const face=(dx,dy,nx,ny,idx)=>ny>.05||nx>.55?cream[clamp(idx+1,1,4)]:null;
+  const head = { style: 'canine', skull: [4.6, 4], snout: { len: 3.3, h: 1.8, tipH: 1, drop:.5 }, ears: { style: 'point', h: 11, w: 7.2, gap:3.4, dx: -.8, lean: -.8, inner: [221,202,181], pal: [[150,112,77],[229,209,174],[255,245,224]] }, eye: { dx: 2.1, dy: -.3, big: true }, nose: [32,28,27], whisk: true, pattern:face };
   const P = () => ({
-    ground: 27, cx: 15, cy: 18.5, rx: 7.6, ry: 4.5, pal, seed: 51, belly: 0.12, legs, stride: 6.5, lift: 2.8, gait: 'trot', bob: 1,
-    head, neck: [4.6, -2.5], tail: frTail('bushy', pal, { len: 11, w: 3.2, rise: 2, swing: 2, tip: [[28, 22, 22], [60, 48, 44], [92, 74, 66]] }),
+    ground: 31, cx: 18, cy: 21.5, rx: 8.6, ry: 4.7, pal, seed: 51, belly: .2, fur:.4, legs, stride: 6.5, lift: 2.8, gait: 'trot', bob: 1,
+    pattern:(dx,dy,nx,ny,idx)=>ny>.4?cream[clamp(idx+1,1,4)]:null,
+    neckPattern:(dx,dy,nx,ny,idx)=>nx>.3&&ny>.1?cream[clamp(idx+1,1,4)]:null,
+    head, neck: [4.4, -3.5], tail: frTail('bushy', pal, { len: 10, w: 3.5, rise: 2, swing: 1.6, tip: [[47,36,30],[77,56,40],[109,79,53]] }),
     pose: (I) => (I.idle === 2 ? { headDy: 3, headDx: 2, tilt: 0.45 } : I.idle === 3 ? { earTwitch: true, eyeClosed: true } : I.idle === 1 ? { headDy: -1 } : {}),
   });
   frSpecies('fenec', { name: 'Fenec', biomes: [BIOME.DESERT, BIOME.MESA], hp: 8, speed: 66, w: 20, h: 12, drops: [[ITEM.LEATHER, 1, 1], [ITEM.MEAT, 1, 1]], color: '#dcb98a' },
-    faunaHook({ paint: (s, p, f) => frQuad(s, f, P()), scare: 6, flee: 2, gaitDiv: 3, hop: { vy: 120, wait: 0.9 } }), [34, 28], pal, 'kitsune');
+    faunaHook({ paint: (s, p, f) => frQuad(s, f, P()), outline:[61,44,33], scare: 6, flee: 2, gaitDiv: 3, hop: { vy: 120, wait: 0.9 } }), [40, 32], pal, 'kitsune');
 }
 
 // ---------------------------------------------------------------- Suricato (savana): vigia em pé
 {
-  const pal = [[88, 62, 42], [140, 104, 68], [190, 154, 106], [224, 196, 148], [246, 230, 192]];
-  const belly = [[60, 44, 34], [112, 84, 60], [172, 140, 100], [214, 190, 146]];
-  const legs = { fore: { L1: 3, L2: 3, w1: 2, w2: 1.5, pal, paw: 2 }, hind: { L1: 3.4, L2: 3.4, w1: 2.4, w2: 1.7, pal, paw: 3 } };
-  const rings = (dx, dy, nx, ny) => (nx > 0.1 && ny > -0.5 && ny < 0.3 && Math.hypot(nx - 0.45, ny + 0.1) < 0.5 ? [58, 40, 34] : null);
+  const pal = [[100,75,50],[153,118,76],[194,159,110],[224,200,151],[247,232,199]];
+  const belly = [[130,111,79],[180,159,117],[220,200,155],[246,232,196]];
+  const legs = { fore: { L1: 4.1, L2: 4, w1: 1.8, w2: 1.3, pal, hoof:pal[2], paw: 2, kneeDir:1, paint:frPawLeg }, hind: { L1: 4.3, L2: 4, w1: 2.5, w2: 1.4, pal, hoof:pal[2], paw: 2, kneeDir:-1, paint:frPawLeg } };
+  const rings = (dx, dy, nx, ny) => (nx>.05&&nx<.85&&ny>-.6&&ny<.25?[56,44,34]:ny>.35?[246,233,203]:null);
   const headPal = [[170, 136, 96], [208, 176, 128], [236, 214, 170], [250, 240, 208]];
-  const head = { style: 'rodent', skull: [3.6, 3.4], snout: { len: 4, h: 1.5, tipH: 0.9, drop: 0.8 }, ears: { style: 'round', h: 2.4, w: 2.4, dx: -0.2, pal: belly }, eye: { dx: 1.7, dy: -0.3, big: true }, nose: [24, 20, 22], pattern: rings, pal: headPal };
+  const head = { style: 'rodent', skull: [3.8,3.6], snout: { len: 3, h: 1.5, tipH: .8, drop: .9 }, ears: { style: 'round', h: 2.4, w: 2.8, dx: -.7, inner:[76,57,40], pal:[[76,57,40],[146,111,73],[221,194,147]] }, eye: { dx: 1.7, dy: -.3, big: true }, nose: [30,26,23], pattern: rings, pal: headPal };
+  const furPattern=(dx,dy,nx,ny,idx)=>ny>.45?belly[clamp(idx,0,3)]:ny<.2&&nx<.45&&(dx+Math.round(dy*.4)+40)%4===0?pal[clamp(idx-1,0,4)]:null;
   const P = () => ({
-    ground: 33, cx: 14, cy: 24, rx: 7, ry: 3.8, pal, seed: 61, belly: 0.1, legs, stride: 5.5, lift: 2.4, gait: 'trot', bob: 1,
-    head, neck: [4.4, -2], tail: frTail('thin', pal, { len: 11, w: 1.8, drop: 3, swing: 2.6, tip: [60, 44, 36] }),
+    ground: 33, cx: 15, cy: 23.5, rx: 7.2, ry: 4, pal, seed: 61, belly: .15, fur:.5, pattern:furPattern, legs, stride: 5.5, lift: 2.4, gait: 'trot', bob: 1,
+    head, neck: [3.8, -3], tail: frTail('thin', pal, { len: 10, w: 1.6, drop: 3, swing: 2, tip: [75,57,40] }),
     pose: (I) => (I.idle === 2 ? { headDy: 2, headDx: 1.5, tilt: 0.3 } : I.idle === 3 ? { eyeClosed: true } : {}),
   });
   // Em pé (14/15): braços dobrados no peito e a cabeça girando para vigiar
   const stand = (s, f) => {
     const cx = 13, g = 33, look = f === 15 ? 1 : 0;
     for (let i = 0; i <= 11; i++) { const t = i / 11, y = g - 2 - Math.sin(t * 2.2) * 3 + t * 2; seg(s, cx - 4 - t * 9, y, cx - 5 - t * 9, y, 2 - t * 0.7, pal[1]); }
-    frLeg(s, cx - 2, g - 6, cx - 4, g, { L1: 4, L2: 3.6, w1: 3, w2: 2, pal, paw: 4 }, true);
-    frFur(s, cx, g - 11, 4.8, 8.4, { pal, seed: 62, belly: 0.1 });
-    frFur(s, cx + 1.6, g - 10, 3, 5.8, { pal: belly, seed: 5, fur: 0.5, pattern: (dx, dy, nx, ny) => (ny > -0.2 && ny < 0.5 && (dx + dy) % 3 === 0 ? [74, 54, 44] : null) });
-    frLeg(s, cx + 1, g - 6, cx + 1, g, { L1: 4, L2: 3.6, w1: 3, w2: 2, pal, paw: 4 }, false);
+    frLeg(s, cx - 2, g - 6, cx - 4, g, { L1: 3.5, L2: 3.3, w1: 2.4, w2: 1.4, pal, hoof:pal[2], paw: 2, kneeDir:-1, paint:frPawLeg }, true);
+    frFur(s, cx, g - 11, 4.4, 8.4, { pal, seed: 62, belly: .15, fur:.5 });
+    frFur(s, cx + 1.6, g - 10, 2.8, 5.8, { pal: belly, seed: 5, fur:.3 });
+    frLeg(s, cx + 1, g - 6, cx + 1, g, { L1: 3.5, L2: 3.3, w1: 2.4, w2: 1.4, pal, hoof:pal[2], paw: 2, kneeDir:-1, paint:frPawLeg }, false);
     seg(s, cx + 2, g - 14, cx + 3.5, g - 11, 1.8, pal[2]); seg(s, cx + 3.5, g - 11, cx + 2, g - 10, 1.8, pal[1]);
     frHead(s, cx + 1.5 + look, g - 22, { ...head, tilt: look ? -0.2 : 0.05 });
   };
   frSpecies('suricato', { name: 'Suricato', biome: BIOME.SAVANNA, hp: 7, speed: 60, w: 14, h: 13, drops: [[ITEM.MEAT, 1, 1], [ITEM.LEATHER, 0, 1]], color: '#c8a46c' },
-    faunaHook({ paint: (s, p, f) => (f >= 14 ? stand(s, f) : frQuad(s, f, P())), scare: 5, flee: 2, gaitDiv: 2.6, idleChance: 0.75, idleRate: 1.2, frames: { idle: (m, f) => (f === 8 || f === 10 ? (Math.floor(m.clock * 0.9) % 2 ? 14 : 15) : f) } }), [28, 36], pal, 'rabbit');
+    faunaHook({ paint: (s, p, f) => (f >= 14 ? stand(s, f) : frQuad(s, f, P())), outline:[54,43,32], scare: 5, flee: 2, gaitDiv: 2.6, idleChance: 0.75, idleRate: 1.2, frames: { idle: (m, f) => (f === 8 || f === 10 ? (Math.floor(m.clock * 0.9) % 2 ? 14 : 15) : f) } }), [32, 36], pal, 'rabbit');
 }
 
 // ---------------------------------------------------------------- Coiote (mesa e deserto, hostil)

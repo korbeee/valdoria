@@ -43,6 +43,13 @@ function weatherAnnounce(g) {
 // =====================================================================================
 //  RAIOS
 // =====================================================================================
+// Onde o raio toca: a superfície da água, se há mar, lago ou rio embaixo, senão o teto de verdade (árvore, telhado, chão)
+function strikeSpot(world, tx) {
+  const base = typeof funnelBase === 'function' ? funnelBase(world, tx) : null;
+  if (base?.water) return { y: base.y, ty: Math.floor(base.y / T), water: true };
+  const ty = weatherCeiling(world, tx);
+  return { y: ty * T, ty, water: false };
+}
 function weatherLightning(g) {
   const w = g.weather, p = g.player, world = g.world;
   if (Math.random() > WX.strikeChance * (0.6 + w.lightning * 0.6)) return;
@@ -56,14 +63,14 @@ function weatherLightning(g) {
     const tx0 = Math.floor(x / T);
     let best = tx0, bestY = Infinity;
     for (let dx = -4; dx <= 4; dx++) {
-      const tx = clamp(tx0 + dx, 1, world.w - 2), y = weatherCeiling(world, tx);
+      const tx = clamp(tx0 + dx, 1, world.w - 2), y = strikeSpot(world, tx).y / T;
       if (y < bestY - 1) { bestY = y; best = tx; }
     }
     x = (best + 0.5) * T;
   }
-  const tx = clamp(Math.floor(x / T), 1, world.w - 2), ty = weatherCeiling(world, tx);
-  if (!weatherExposed(world, x, ty * T - 2)) return;
-  (w.strikes ??= []).push({ x, y: ty * T, tx, ty, t: 0, warn: WX.strikeWarn, bolt: null, hit: false });
+  const tx = clamp(Math.floor(x / T), 1, world.w - 2), spot = strikeSpot(world, tx), ty = spot.ty;
+  if (!weatherExposed(world, x, spot.y - 2)) return;
+  (w.strikes ??= []).push({ x, y: spot.y, tx, ty, t: 0, warn: WX.strikeWarn, bolt: null, hit: false, water: spot.water });
   playSfx('strikeBuzz', x, ty * T);
   if (metal && Math.abs(x - p.cx) < 4 && !g.metalHint) { g.metalHint = true; toast('O ferro na sua mão está atraindo os raios! Guarde-o ou se abrigue.'); }
 }
@@ -109,8 +116,11 @@ function updateStrikes(g, dt) {
         const tx = s.tx + dx, ground = world.groundTop(tx);
         if (world.getTile(tx, ground - 1) === TILE.TRUNK && treeIsWhole(world, tx, ground - 1)) { startTreeFall(g, tx, ground - 1); break; }
       }
-      (w.scorches ??= []).push({ x: s.x, y: s.y, t: 0 });
-      if (w.scorches.length > 12) w.scorches.shift();
+      if (s.water) { if (typeof shockWater === 'function') shockWater(g, s); }   // na água: a descarga se espalha (js/water-shock.js)
+      else {
+        (w.scorches ??= []).push({ x: s.x, y: s.y, t: 0 });
+        if (w.scorches.length > 12) w.scorches.shift();
+      }
     }
     if (s.t > s.warn + 0.32) list.splice(i, 1);
   }
@@ -165,7 +175,7 @@ function updateTornado(g, f, dt) {
   // o que está bem embaixo do funil: árvore tomba, mato é arrancado, enfeite solto voa
   const cx = Math.floor(f.x / T);
   f.felled ??= new Set();
-  for (let tx = cx - 1; tx <= cx + 1; tx++) {
+  for (let tx = f.water ? 0 : cx - 1; tx <= (f.water ? -1 : cx + 1); tx++) {   // sobre a água não há árvore nem mato para arrancar
     if (tx < 2 || tx >= world.w - 2) continue;
     const ground = world.groundTop(tx);
     if (!weatherExposed(world, (tx + 0.5) * T, (ground - 1) * T)) continue;
@@ -182,7 +192,7 @@ function updateTornado(g, f, dt) {
   // terra e folhas voando da base
   if (Math.random() < dt * 30 * s) {
     const a = Math.random() * Math.PI * 2;
-    wxPart(g, { x: f.x + Math.cos(a) * 18, y: f.y - 4, vx: Math.cos(a) * 220, vy: -120 - Math.random() * 220, life: 0.9, maxLife: 0.9, color: Math.random() < 0.5 ? '#7a5a3a' : '#5a7a3a', w: 2, h: 1 + (Math.random() < 0.4 ? 1 : 0), gravity: 380 });
+    wxPart(g, { x: f.x + Math.cos(a) * 18, y: f.y - 4, vx: Math.cos(a) * 220, vy: -120 - Math.random() * 220, life: 0.9, maxLife: 0.9, color: f.water ? (Math.random() < 0.5 ? '#e4f6ff' : '#9fd4f2') : Math.random() < 0.5 ? '#7a5a3a' : '#5a7a3a', w: 2, h: 1 + (Math.random() < 0.4 ? 1 : 0), gravity: 380 });
   }
 }
 // o arremesso continua por um tempo (a física do jogador/bicho zera vx todo quadro)
@@ -198,6 +208,17 @@ function applyWeatherFling(g, dt) {
 // =====================================================================================
 //  GRANIZO, VENDAVAL E ATUALIZAÇÃO GERAL
 // =====================================================================================
+// Pedra de granizo que cai na água respinga e afunda devagar (px/s), balançando, até sumir
+const HAIL_SINK_SPEED = 20;
+function hailSplash(g, x, surf) {
+  const w = g.weather;
+  if (w.splashes.length < 110) w.splashes.push({ x, y: surf, life: 0.32, water: true, hit: true });
+  const rings = g.rainRings ??= [];
+  if (rings.length < 70) rings.push({ x, y: surf, t: 0, life: 0.7, r: 6 + Math.random() * 4 });
+  if (typeof waveImpulse === 'function') waveImpulse(g, x, surf, 11, 4);
+  if (typeof waterParticle === 'function') for (let k = 0; k < 3; k++) waterParticle(g, x, surf, (Math.random() - 0.5) * 44, -34 - Math.random() * 40, 0.3);
+  if (Math.random() < 0.5) playSfx('hailTap', x, surf);
+}
 function updateWeatherPlus(g, dt) {
   const w = g.weather, p = g.player, world = g.world;
   if (!w || g.intro?.active) return;
@@ -231,9 +252,10 @@ function updateWeatherPlus(g, dt) {
     const want = Math.min(160, Math.ceil(hail * 140));
     for (let n = 0; n < 6 && w.hailStones.length < want; n++) {
       const x = g.cam.x + Math.random() * canvas.width / g.zoom, y = g.cam.y - 10 + Math.random() * 40;
+      if (world.waterAtPx(x, y)) continue;   // não nasce embaixo d'água
       w.hailStones.push({ x, y, vx: (w.wind || 0) * 1.2, vy: 380 + Math.random() * 140, bounce: 0, life: 3 });
     }
-    if (wxExposed(g, p.cx, p.y) && (g.hailT = (g.hailT ?? WX.hailTick) - dt) <= 0) {
+    if (wxExposed(g, p.cx, p.y) && !world.waterAtPx(p.cx, p.y + 3) && (g.hailT = (g.hailT ?? WX.hailTick) - dt) <= 0) {
       g.hailT = WX.hailTick;
       if (Math.random() < 0.55 * hail && !g.adminGod) {
         damageMonsterPlayer(g, WX.hailDamage, p.cx, { pierce: true, death: 'O granizo foi demais.' });
@@ -243,6 +265,19 @@ function updateWeatherPlus(g, dt) {
   }
   for (let i = w.hailStones.length - 1; i >= 0; i--) {
     const h = w.hailStones[i];
+    if (h.sink) {   // já na água: afunda devagar, como uma pedrinha, balançando de leve até sumir
+      h.t += dt; h.vy += (HAIL_SINK_SPEED - h.vy) * Math.min(1, dt * 4); h.vx *= Math.exp(-dt * 5);
+      h.x += (h.vx + Math.sin(h.t * 2.4 + h.ph) * 7) * dt; h.y += h.vy * dt; h.life -= dt;
+      if (h.life <= 0 || !world.waterAtPx(h.x, h.y) || SOLID[world.getTile(Math.floor(h.x / T), Math.floor(h.y / T))] === 1) w.hailStones.splice(i, 1);
+      else if (Math.random() < dt * 1.6 && typeof waterParticle === 'function') waterParticle(g, h.x, h.y - 2, (Math.random() - 0.5) * 6, -14, 0.5);   // bolhinha
+      continue;
+    }
+    if (!h.sink && world.waterAtPx(h.x + h.vx * dt, h.y + (h.vy + 900 * dt) * dt)) {   // bateu na superfície (já olhando o passo seguinte)
+      const surf = world.waterSurfacePx(Math.floor(h.x / T), Math.floor(h.y / T)) ?? h.y;
+      Object.assign(h, { sink: true, t: 0, ph: Math.random() * 6.28, surf, y: Math.max(h.y, surf), vy: h.vy * 0.12, vx: h.vx * 0.1, life: 9, bounce: 1 });
+      hailSplash(g, h.x, surf);
+      continue;
+    }
     h.vy += 900 * dt; h.x += h.vx * dt; h.y += h.vy * dt; h.life -= dt;
     if (h.vy > 0 && !weatherExposed(world, h.x, h.y)) {
       if (h.bounce >= 1 || world.getTile(Math.floor(h.x / T), Math.floor(h.y / T)) === TILE.AIR) { w.hailStones.splice(i, 1); continue; }
@@ -322,7 +357,7 @@ drawWeatherFunnel = function (ctx, g, ox, oy, z) {
   if (f.x + C.topR * 2 < ox / z || f.x - C.topR * 2 > ox / z + vw) return;
   ctx.save(); ctx.setTransform(z, 0, 0, z, -ox, -oy); ctx.imageSmoothingEnabled = false;
   const dusty = tornadoDusty(g, f), lean = clamp((f.vx || 0) / 60, -1, 1);
-  const base = dusty ? [138, 112, 78] : [78, 80, 80], dirt = dusty ? [176, 146, 100] : [102, 84, 62];
+  const base = dusty ? [138, 112, 78] : f.water ? [92, 108, 120] : [78, 80, 80], dirt = dusty ? [176, 146, 100] : f.water ? [204, 224, 236] : [102, 84, 62];   // tromba d'água: cinza-azulada com a base de borrifo
   const top = f.y - C.height;
   const centerAt = (h) => f.x + Math.sin(h * 2.6 + t * 0.55 + f.seed) * h * 30 * (0.6 + 0.4 * s) + lean * h * h * 48;
   // capa de poeira e destroços em volta do terço de baixo (mais larga e translúcida)
@@ -373,7 +408,7 @@ function drawWeatherPlus(ctx, g, W, H, ox, oy, z) {
   const f = w.funnel;
   if (f && f.strength > 0.05) {
     const s = f.strength, t = f.age, dusty = tornadoDusty(g, f);
-    const grains = dusty ? ['#b8955e', '#d4b27a', '#9a7a4a'] : ['#5a4632', '#6e5840', '#4a3c2c', '#7a6448'];
+    const grains = dusty ? ['#b8955e', '#d4b27a', '#9a7a4a'] : f.water ? ['#e8f7ff', '#bfe3f6', '#8fc6ea', '#f6fcff'] : ['#5a4632', '#6e5840', '#4a3c2c', '#7a6448'];
     ctx.globalAlpha = Math.min(0.85, s) * night;
     for (let k = 0; k < 140; k++) {
       const life = ((t * (0.35 + (k % 5) * 0.05) + k * 0.0731) % 1), a = t * (3.4 - life) + k * 2.39;
@@ -382,7 +417,7 @@ function drawWeatherPlus(ctx, g, W, H, ox, oy, z) {
       ctx.fillStyle = grains[k % grains.length];
       ctx.fillRect(Math.round(x), Math.round(y + Math.sin(a) * 3), k % 3 ? 2 : 3, k % 4 ? 1 : 2);
     }
-    const pal = ['#6a4a2e', '#4e7a32', '#8a6a42', '#3c3c38', '#a07a4a'];
+    const pal = f.water ? ['#dff2fc', '#a9d6f0', '#7fb8e0', '#f2fbff'] : ['#6a4a2e', '#4e7a32', '#8a6a42', '#3c3c38', '#a07a4a'];
     for (let k = 0; k < 46; k++) {
       const h = ((k * 0.137 + t * 0.07) % 1), y = f.y - h * WX.tornado.height * 0.8;
       const r = lerp(WX.tornado.bottomR + 8, WX.tornado.topR * 0.6, Math.pow(h, 1.5)) + 6, a = t * (5.5 - h * 3) + k * 1.7;
@@ -419,6 +454,12 @@ function drawWeatherPlus(ctx, g, W, H, ox, oy, z) {
   }
   // granizo
   for (const h of w.hailStones || []) {
+    if (h.sink) {   // afundando: sem rastro, mais fosca e azulada quanto mais fundo, e some aos poucos
+      const a = clamp(h.life / 2, 0, 1) * clamp(1 - (h.y - h.surf) / 150, 0.2, 1);
+      ctx.globalAlpha = a; ctx.fillStyle = '#7fa3b8'; ctx.fillRect(Math.round(h.x) - 1, Math.round(h.y), 3, 3);
+      ctx.fillStyle = '#c6e0ee'; ctx.fillRect(Math.round(h.x) - 1, Math.round(h.y), 2, 2); ctx.globalAlpha = 1;
+      continue;
+    }
     if (!h.bounce) { ctx.fillStyle = 'rgba(220,235,245,0.45)'; ctx.fillRect(Math.round(h.x - h.vx * 0.012), Math.round(h.y - 7), 1, 6); }
     ctx.fillStyle = '#b9d2e2'; ctx.fillRect(Math.round(h.x) - 1, Math.round(h.y), 3, 3);
     ctx.fillStyle = '#f4fbff'; ctx.fillRect(Math.round(h.x) - 1, Math.round(h.y), 2, 2);

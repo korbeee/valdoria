@@ -248,8 +248,9 @@ function nestSprite() {
 function wildlifeSprite(kind, frame) {
   const key = kind + ':' + frame;
   if (wildlifeSprites.has(key)) return wildlifeSprites.get(key);
-  const d = WILDLIFE[kind], pal = WILD_PALETTES[kind], [W, H] = WILD_SIZES[d.shape], s = new Sprite(W, H);
-  if (d.shape === 'wolf') paintWolf(s, pal, frame, kind === 'frostwolf');
+  const d = WILDLIFE[kind], pal = WILD_PALETTES[kind], [W, H] = kind === 'hyena' ? WILD_SIZES.hyena : WILD_SIZES[d.shape], s = new Sprite(W, H);
+  if (kind === 'hyena') paintHyena(s, pal, frame);
+  else if (d.shape === 'wolf') paintWolf(s, pal, frame, kind === 'frostwolf');
   else if (d.shape === 'rabbit') paintRabbit(s, pal, frame, kind === 'snowhare');
   else if (d.shape === 'tortoise') paintTortoise(s, pal, frame);
   else if (d.shape === 'scorpion') paintScorpion(s, pal, frame);

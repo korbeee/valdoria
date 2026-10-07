@@ -283,8 +283,10 @@ function updateSwimming(p, dt, input, world) {
   else {
     // Parado, o corpo boia: com a cabeça de fora fica balançando na linha d'água; mais fundo, sobe devagar
     const sub = p.submersion, bob = Math.sin((game.clock || 0) * 2.4) * 10;
-    const target = headOut ? (sub > 0.66 ? -30 : sub < 0.5 ? 45 : 0) + bob : -SWIM.float;
+    const swell = typeof swellVelocityAt === 'function' && headOut ? swellVelocityAt(game, p.cx, p.cy) : 0;   // no temporal sobe e desce com a onda (js/water-storm.js)
+    const target = headOut ? (sub > 0.66 ? -30 : sub < 0.5 ? 45 : 0) + bob + swell : -SWIM.float;
     p.vy += (target - p.vy) * k(2.5);
+    if (!dir && headOut && typeof swellDriftAt === 'function') p.vx += swellDriftAt(game, p.cx, p.cy) * 3 * dt;   // e a onda o leva devagar
   }
   if (world.isWaterfall(Math.floor(p.cx / T), Math.floor(p.cy / T))) p.vy = Math.min(p.vy + SWIM.current * dt, 320);
 

@@ -34,6 +34,7 @@ function frFur(s, cx, cy, rx, ry, o) {
 }
 // Perna de dois ossos até o pé; far = perna do lado de lá (mais escura); o = { L1, L2, w1, w2, pal, hoof, kneeDir, paw }
 function frLeg(s, hx, hy, fx, fy, o, far) {
+  if(o.paint){o.paint(s,hx,hy,fx,fy,o,far);return;}
   const [kx, ky] = ik(hx, hy, fx, fy, o.L1, o.L2, o.kneeDir ?? 1), pal = o.pal, c = far ? pal[0] : pal[1], hi = far ? pal[1] : pal[2];
   seg(s, hx, hy, kx, ky, o.w1, c);
   seg(s, kx, ky, fx, fy, o.w2, c);
@@ -45,6 +46,25 @@ function frLeg(s, hx, hy, fx, fy, o, far) {
   const hoof = o.hoof || pal[0], plen = o.paw ?? 2;
   seg(s, fx, fy, fx + plen, fy, o.paw === 0 ? 1.5 : 2, far ? shade(hoof, 0.8) : hoof);
 }
+// Patas orgânicas afiladas, com pés compactos para felinos e mamíferos pequenos.
+function frPawLeg(s,hx,hy,fx,fy,o,far){
+  const [kx,ky]=ik(hx,hy,fx,fy,o.L1,o.L2,o.kneeDir??1),pal=o.pal;
+  const segment=(ax,ay,bx,by,wa,wb)=>{
+    const dx=bx-ax,dy=by-ay,length=Math.max(.01,Math.hypot(dx,dy)),nx=-dy/length,ny=dx/length;
+    frPoly(s,[[ax+nx*wa/2,ay+ny*wa/2],[bx+nx*wb/2,by+ny*wb/2],[bx-nx*wb/2,by-ny*wb/2],[ax-nx*wa/2,ay-ny*wa/2]],(x,y)=>{
+      const side=(x+.5-ax)*nx+(y+.5-ay)*ny;
+      return o.legPattern?.(x-hx,y-hy,far)||pal[far?0:side>.4?1:side<-.4?3:2];
+    });
+  };
+  const ankle=Math.max(1,o.w2*.65);
+  segment(hx,hy,kx,ky,o.w1,o.w2);
+  shadeBall(s,kx,ky,o.w2*.55,o.w2*.55,()=>pal[far?0:2]);
+  segment(kx,ky,fx,fy-1,o.w2,ankle);
+  const paw=o.paw??2,foot=o.hoof||pal[2];
+  frPoly(s,[[fx-ankle/2,fy-2],[fx+ankle/2,fy-2],[fx+paw,fy-.5],[fx+paw-1,fy+.5],[fx-ankle/2,fy+.5]],()=>far?pal[0]:foot);
+  if(!far)s.set(Math.round(fx+paw-1),Math.round(fy),pal[1]);
+}
+
 // Alvo do pé numa passada: apoio desliza para trás, balanço sobe em arco e volta
 function frFoot(u, hx, ground, stride, lift) {
   u = ((u % 1) + 1) % 1;

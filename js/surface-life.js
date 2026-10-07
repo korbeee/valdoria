@@ -125,7 +125,7 @@ const SURFACE_PLANTS = {
   forest:  { density: 0.78, flowers: ['daisy', 'poppy', 'bluebell', 'buttercup', 'tulip', 'lavender'], list: [['grass', 30], ['tall', 9], ['flower', 17], ['bush', 6], ['berry', 4], ['fern', 8], ['base:log', 2], ['base:litter', 3]] },
   savanna: { density: 0.72, flowers: ['marigold', 'buttercup'], list: [['grass', 24], ['tall', 24], ['thorn', 6], ['flower', 4], ['twigs', 3], ['tumble', 2]] },
   jungle:  { density: 0.92, flowers: ['orchid', 'heliconia', 'orchid'], list: [['grass', 18], ['tall', 12], ['fern', 26], ['flower', 12], ['bush', 6], ['blueberry', 4]] },
-  sakura:  { density: 0.8, flowers: ['pinkStar', 'daisy', 'tulip'], list: [['grass', 28], ['tall', 8], ['flower', 14], ['hydrangea', 8], ['blossomBush', 5], ['fern', 5]] },
+  sakura:  { density: 0.8, flowers: ['pinkStar', 'daisy', 'tulip'], list: [['grass', 28], ['tall', 8], ['flower', 14], ['blossomBush', 11], ['bush', 3], ['fern', 5]] },
   swamp:   { density: 0.88, flowers: ['iris', 'violet'], list: [['cattail', 20], ['grass', 14], ['tall', 10], ['fern', 10], ['flower', 8], ['bush', 6]] },
   fungal:  { density: 0.9, flowers: ['violet'], list: [['glow', 14], ['violet', 10], ['pods', 10], ['grass', 18], ['fern', 10], ['flower', 6]] },
   mesa:    { density: 0.5, flowers: ['orange', 'marigold'], list: [['sage', 12], ['redShrub', 8], ['barril', 6], ['agave', 6], ['babosa', 3], ['grass', 10], ['tumble', 3], ['flower', 4]] },

@@ -41,7 +41,7 @@ function shaderSunField(world, x0, y0, width, height, time, shade, pads) {
       if (inside && i >= pad.left && i < pad.left + width) field[(y-y0)*width+i-pad.left] = incoming;
       const window = t === TILE.GLASS || t === TILE.LATTICE_WINDOW;
       const transmission = window ? .86 : SOLID[t] ? 0 : t === TILE.LEAVES ? .68 : t === TILE.TRUNK ? .72 : wall !== WALL.NONE ? .32 : 1;
-      next[i] = incoming * transmission * (shade ? shade[row+i] : 1) * (world.hasWater?.(x,y) ? .93 : 1);
+      next[i] = incoming * transmission * (shade ? shade[row+i] : 1) * (world.hasWater?.(x,y) ? .972 : 1);
     }
     const swap = previous; previous = next; next = swap;
   }

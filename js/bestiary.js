@@ -49,7 +49,7 @@ const BESTIARY_LORE = {
   angelfish: 'Desliza devagar, listrado como um vitral.',
   puffer: 'Incha feito uma bola de espinhos quando se sente ameaçado.',
   jellyfish: 'Brilha nas profundezas. Os tentáculos queimam.',
-  shark: 'O terror do mar fundo. Dá voltas antes de atacar.',
+  shark: 'Dá voltas antes de atacar. Após abatê-lo, F carrega o corpo e Q arremessa. Fora da água, limpe com o botão direito usando a faca do tigre: barbatana (50%) e dente (25%).',
   trout: 'Pintada e ágil, sobe a correnteza dos rios.',
   minnow: 'Peixinho de rio que anda em bando.',
   cavefish: 'Nunca viu a luz: não tem olhos e é quase transparente.',
@@ -99,7 +99,7 @@ function bestiarySpecimen(kind) {
 function bestiaryBox(kind) {
   const d = WILDLIFE[kind];
   if (d && !d.aquatic) {
-    const img = wildlifeSprite(kind, 0).normal, k = kind === 'bear' ? BEAR_RENDER_SCALE : 1;
+    const img = wildlifeSprite(kind, kind === 'suricato' ? 14 : 0).normal, k = kind === 'bear' ? BEAR_RENDER_SCALE : 1;
     return [Math.ceil(img.width * k) + 10, Math.ceil(img.height * k) + 8];
   }
   if (d?.aquatic) return [Math.max(d.w + 14, 26), Math.max(d.h + 16, 22)];

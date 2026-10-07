@@ -196,6 +196,8 @@ function damageMonsterPlayer(g,damage,fromX,opts={}){if(g.adminGod||g.respawnPen
 function respawnPlayer(g) {
  const pending=g.respawnPending;if(!pending)return;
  const p=g.player,w=g.world;
+ const carried=carriedShark(g);if(carried)throwShark(g,p,carried,true);
+ const cleaning=cleaningShark(g);if(cleaning)cancelSharkCleaning(cleaning);
  if(g.mount)dismountElephant(g);
  p.crouching=false;p.h=PLAYER_H;p.seat=null;p.climbing=false;p.dropTimer=0;
  const origin=g.spawnPoint||{x:Math.floor(w.w/2)*T+1,y:w.surface[Math.floor(w.w/2)]*T-PLAYER_H-.01};

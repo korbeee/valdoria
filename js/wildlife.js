@@ -80,6 +80,7 @@ class Wildlife extends Pig {
   }
 
   hit(damage, fromX) {
+    if (this.carcass) return;
     if (this.def.shape === 'tiger') { tigerHit(this, damage, fromX); return; }
     if (this.def.shape === 'bear') { bearHit(this, damage, fromX); return; }
     if (this.def.shape === 'fiandeira') { fiandeiraHit(this, damage, fromX); return; }

@@ -230,7 +230,7 @@ function pickAquatic(w, tx, ty, room) {
     if(a.fishingTier)continue; // raros só são atraídos pelas iscas de pesca
     if (a.habitat !== room.habitat) continue;
     if (room.depth < (a.fundo || Math.ceil(a.h / T) + 2) || room.width < (a.largura || Math.ceil(a.w / T) + 4)) continue;
-    if (a.max && game.mobs.filter((o) => o.kind === kind).length >= a.max) continue;
+    if (a.max && game.mobs.filter((o) => o.kind === kind && !o.dead).length >= a.max) continue;
     let weight = a.peso;
     if (a.perto === 'coral') weight *= coralNear(w, tx, ty) ? 2 : 0.1;
     options.push([kind, weight]);
@@ -244,10 +244,10 @@ function pickAquatic(w, tx, ty, room) {
 function updateAquaticSpawns(game, dt) {
   const w = game.world, p = game.player;
   // Os que ficaram longe somem, para nascerem outros perto de onde o jogador está
-  game.mobs = game.mobs.filter((m) => !m.def?.aquatic || Math.hypot(m.cx - p.cx, m.cy - p.cy) < AQUATIC_RANGE * T);
+  game.mobs = game.mobs.filter((m) => m.carcass || !m.def?.aquatic || Math.hypot(m.cx - p.cx, m.cy - p.cy) < AQUATIC_RANGE * T);
   if ((game.aquaticTimer = (game.aquaticTimer ?? 1) - dt) > 0) return;
   game.aquaticTimer = 1.2 + Math.random();
-  const count = game.mobs.filter((m) => m.def?.aquatic).length;
+  const count = game.mobs.filter((m) => m.def?.aquatic && !m.dead).length;
   if (count >= AQUATIC_MAX) return;
   const ptx = Math.floor(p.cx / T), pty = Math.floor(p.cy / T);
   for (let attempt = 0; attempt < 14; attempt++) {
@@ -316,35 +316,105 @@ function paintFish(a, frame) {
   return s.finish([20, 24, 34]);
 }
 
-// Tubarão: corpo em torpedo, focinho pontudo, barbatana alta, guelras e rabo em meia-lua que balança
+// Tubarão: silhueta recortada, dorso azul e nadadeiras com volume.
 function paintShark(frame) {
-  const W = 52, H = 22, s = new Sprite(W, H), cy = 12, sway = [0, 1, 0, -1][frame];
-  const top = [76, 92, 110], mid = [110, 128, 146], belly = [226, 230, 232];
-  for (let x = 5; x <= 48; x++) {
-    const u = (x - 5) / 43, half = u < 0.75 ? 1.3 + Math.sin(u / 0.75 * Math.PI * 0.62) * 5.4 : 5.4 * (1 - (u - 0.75) / 0.25) + 0.8;
-    const bend = Math.round((1 - u) * (1 - u) * sway * 1.5);
-    for (let y = Math.round(cy - half); y <= Math.round(cy + half * 0.8); y++) {
-      const v = (y - (cy - half)) / (half * 1.8);
-      s.set(x, y + bend, v < 0.35 ? top : v < 0.55 ? mid : belly);
+  const s = new Sprite(52, 28), sway = [0, 1, 0, -1][frame];
+  const dark = [44, 66, 82], back = [65, 94, 113], side = [107, 142, 160];
+  const light = [146, 178, 188], belly = [222, 235, 228];
+  // Preenche polígonos em pixels inteiros; a borda final acompanha cada barbatana.
+  const polygon = (points, color, bend = false) => {
+    const minY = Math.min(...points.map(pt => pt[1])), maxY = Math.max(...points.map(pt => pt[1]));
+    for (let y = minY; y <= maxY; y++) {
+      const cuts = [];
+      for (let i = 0; i < points.length; i++) {
+        const a = points[i], b = points[(i + 1) % points.length];
+        if ((a[1] <= y && b[1] > y) || (b[1] <= y && a[1] > y))
+          cuts.push(a[0] + (y - a[1]) * (b[0] - a[0]) / (b[1] - a[1]));
+      }
+      cuts.sort((a, b) => a - b);
+      for (let i = 0; i + 1 < cuts.length; i += 2) {
+        for (let x = Math.ceil(cuts[i]); x <= Math.floor(cuts[i + 1]); x++) {
+          const offset = bend ? Math.round(Math.pow(Math.max(0, (23 - x) / 23), 2) * sway) : 0;
+          s.set(x, y + offset, typeof color === 'function' ? color(x, y) : color);
+        }
+      }
     }
+  };
+  // Cauda assimétrica com lobo superior longo e junta flexível.
+  polygon([[2, 4 + sway], [5, 7 + sway], [7, 12], [10, 14], [7, 17], [3, 23 + sway], [3, 19 + sway], [5, 15], [3, 11 + sway]],
+    (x, y) => x < 4 ? light : y < 14 ? back : side);
+  polygon([[21, 10], [27, 2], [28, 6], [34, 11]], (x, y) => x < 27 ? side : dark);
+  polygon([[14, 12], [17, 8], [20, 11]], back, true);
+  polygon([[18, 18], [15, 22], [23, 20]], dark, true);
+  // Corpo fusiforme, focinho projetado e barriga com sombra suave.
+  polygon([[7, 13], [13, 11], [21, 9], [30, 9], [38, 11], [44, 13], [49, 15],
+    [49, 17], [43, 19], [32, 21], [22, 20], [13, 17], [7, 16]], (x, y) => {
+    const boundary = 15 + (x < 19 ? -1 : x > 39 ? 1 : 0);
+    if (y >= boundary + 3) return [174, 204, 207];
+    if (y >= boundary) return belly;
+    if (y === boundary - 1) return light;
+    return y < 12 ? back : side;
+  }, true);
+  // Reflexo estreito no dorso, sem ruído na barriga.
+  for (let x = 18; x <= 34; x++) s.set(x, x < 22 || x > 30 ? 11 : 10, [119, 157, 176]);
+  // Guelras curvas, separadas do olho e da nadadeira peitoral.
+  for (let k = 0; k < 3; k++) {
+    const x = 34 + k * 2;
+    for (let y = 13; y <= 16; y++) s.set(x + (y === 16 ? -1 : 0), y, dark);
+    s.set(x + 1, 14, light);
   }
-  // Barbatana das costas e peitoral
-  for (let k = 0; k < 7; k++) for (let y = 0; y <= k; y++) s.set(26 - Math.round(k * 0.6) + y, cy - 6 - (6 - k), top);
-  for (let k = 0; k < 5; k++) s.set(30 - k, cy + 4 + Math.round(k * 0.6), mid);
-  // Rabo em meia-lua
-  for (let k = 0; k < 8; k++) { s.set(5 - Math.round(k * 0.35), cy - 1 - k + sway, top); s.set(5 - Math.round(k * 0.3), cy + Math.round(k * 0.6) + sway, mid); }
-  // Guelras, olho e boca
-  for (const gx of [37, 39, 41]) for (let y = cy - 1; y <= cy + 2; y++) s.set(gx, y, [58, 70, 86]);
-  s.set(44, cy - 2, [16, 16, 22]);
-  for (let x = 42; x <= 47; x++) s.set(x, cy + 3, [70, 60, 66]);
-  return s.finish([22, 28, 36]);
+  // Nadadeira próxima cobre a barriga e balança junto à cauda.
+  const fin = frame === 1 ? 1 : frame === 3 ? -1 : 0;
+  polygon([[30, 16], [35, 17], [29, 24 + fin], [27, 24 + fin]], (x, y) => x > 30 ? side : back);
+  s.set(30, 20, light); s.set(29, 21, light);
+  // Olho escuro com brilho e sobrancelha; narina no focinho.
+  s.set(42, 12, dark); s.set(43, 12, dark);
+  s.set(42, 13, [11, 24, 31]); s.set(43, 13, [11, 24, 31]);
+  s.set(42, 13, [231, 239, 217]); s.set(43, 14, dark);
+  s.set(47, 15, dark);
+  // Linha da mandíbula e três dentes discretos, legíveis no tamanho do jogo.
+  for (let x = 40; x <= 47; x++) s.set(x, x < 43 ? 18 : 17, [39, 48, 55]);
+  for (const x of [42, 44, 46]) s.set(x, 18, [250, 246, 221]);
+  return s.finish([20, 36, 46]);
+}
+
+function paintCatfish(frame) {
+  const s=new Sprite(32,16),sway=[0,1,0,-1][frame&3];
+  const pal=[[37,53,55],[58,78,77],[82,105,99],[118,141,127],[159,177,151],[209,219,184]];
+  const polygon=(points,pick)=>{
+    for(let y=Math.min(...points.map(p=>p[1]));y<=Math.max(...points.map(p=>p[1]));y++)for(let x=Math.min(...points.map(p=>p[0]));x<=Math.max(...points.map(p=>p[0]));x++){
+      let inside=false;for(let i=0,j=points.length-1;i<points.length;j=i++){
+        const [ax,ay]=points[i],[bx,by]=points[j];if((ay>y+.5)!==(by>y+.5)&&x+.5<(bx-ax)*(y+.5-ay)/(by-ay)+ax)inside=!inside;
+      }
+      if(inside)s.set(x,y,typeof pick==='function'?pick(x,y):pick);
+    }
+  };
+  // Cauda bifurcada, barbatana dorsal e longa barbatana anal.
+  polygon([[1,3+sway],[5,6],[9,7],[9,9],[5,10],[1,13+sway],[2,8+sway]],(x,y)=>pal[x<3?3:1]);
+  polygon([[10,5],[13,1],[15,1],[17,5]],(x,y)=>pal[x<14?3:1]);
+  polygon([[9,10],[20,10],[17,13],[11,12]],(x,y)=>pal[y===11?3:1]);
+  // Pele lisa, dorso mosqueado discreto e cabeça larga característica do bagre.
+  polygon([[5,7],[10,5],[17,4],[23,5],[27,6],[28,9],[26,11],[21,12],[13,11],[6,9]],(x,y)=>{
+    if(y>=10)return pal[5];if(y===9)return pal[4];
+    if(y<=6)return pal[y===5&&x<21?3:1];
+    return (x*7+y*11)%13===0&&x<22?pal[2]:pal[3];
+  });
+  seg(s,12,6,20,6,1,pal[4]);seg(s,21,7,22,9,1,pal[1]);s.set(23,9,pal[4]);
+  polygon([[21,9],[24,10],[20,14],[18,13]],(x,y)=>pal[x>20?2:1]);s.set(20,12,pal[3]);
+  s.set(25,7,[181,176,117]);s.set(26,7,[18,30,30]);s.set(26,8,pal[1]);
+  seg(s,26,10,28,9,1,pal[0]);
+  // Bigodes separados da boca e curvados nas pontas, sem virarem parte do corpo.
+  seg(s,27,8,30,6,1,pal[4]);s.set(30,5,pal[4]);
+  seg(s,27,10,30,12,1,pal[5]);s.set(31,12,pal[4]);
+  seg(s,25,11,27,13,1,pal[3]);s.set(27,14,pal[3]);
+  return s.finish([25,40,43]);
 }
 
 function aquaticSprite(kind, frame) {
   const key = kind + ':' + frame;
   let c = aquaticSprites.get(key);
   if (c) return c;
-  const normal = kind === 'shark' ? paintShark(frame) : paintFish(AQUATIC[kind], frame);
+  const normal = kind === 'shark' ? paintShark(frame) : kind === 'catfish' ? paintCatfish(frame) : paintFish(AQUATIC[kind], frame);
   c = { normal, hurt: hurtFlash(normal) };
   aquaticSprites.set(key, c);
   return c;
@@ -379,36 +449,86 @@ function drawJelly(ctx, m) {
   if (m.hurtTimer > 0) { ctx.fillStyle = 'rgba(255,120,110,0.5)'; ctx.beginPath(); ctx.ellipse(x, y, bw, bh, 0, Math.PI, Math.PI * 2); ctx.fill(); }
 }
 
-// Baiacu: murcho é um peixinho gordo; inchado vira uma bola cheia de espinhos
-function drawPuffer(ctx, m) {
-  const p = m.puff || 0, r = lerp(4.2, 7.6, p), x = m.cx, y = m.cy, f = m.facing;
-  const body = m.hurtTimer > 0 ? '#e79a87' : '#e2bd4c', back = '#a8832a', belly = '#f6ecc8';
-  ctx.save(); ctx.translate(Math.round(x), Math.round(y)); ctx.scale(f, 1);
-  // Espinhos (aparecem enquanto incha)
-  if (p > 0.25) {
-    ctx.fillStyle = '#6b5420';
-    const n = 12, len = (p - 0.25) / 0.75 * 3;
-    for (let k = 0; k < n; k++) {
-      const a = (k / n) * Math.PI * 2;
-      ctx.fillRect(Math.round(Math.cos(a) * (r + len * 0.5)) - 0.5, Math.round(Math.sin(a) * (r + len * 0.5)) - 0.5, 1 + (len > 1.5 ? 1 : 0), 1 + (len > 1.5 ? 1 : 0));
+// Baiacu em pixels inteiros: contorno, espinhos afilados e nadadeiras animadas.
+// As poses ficam em cache, como as demais skins aquáticas.
+function pufferSprite(puff, frame) {
+  const step = Math.round(clamp(puff, 0, 1) * 16), key = 'puffer:' + step + ':' + frame;
+  let sprite = aquaticSprites.get(key);
+  if (sprite) return sprite;
+  const p = step / 16, rx = lerp(4.6, 7.6, p), ry = lerp(3.3, 7.6, p);
+  const canvas = makeCanvas(27, 27), c = canvas.getContext('2d');
+  c.translate(13, 13);
+  const pixel = (x, y, color, w = 1, h = 1) => {
+    c.fillStyle = color; c.fillRect(Math.round(x), Math.round(y), w, h);
+  };
+  const wag = [0, 1, 0, -1][frame];
+  // Cauda em leque: continua visível quando o corpo está inflado.
+  const tailX = -Math.round(rx) - 3;
+  pixel(tailX, -2 + wag, '#70502e', 2, 5);
+  pixel(tailX, -1 + wag, '#e9a843', 2, 3);
+  pixel(tailX + 2, wag, '#ffd56d', 2, 1);
+  // Espinhos unidos ao contorno, com pontas claras e bases sombreadas.
+  if (p > 0.2) {
+    const length = Math.round(lerp(1, 3, (p - 0.2) / 0.8));
+    for (let k = 0; k < 12; k++) {
+      const angle = (k + 0.5) * Math.PI / 6;
+      if (Math.cos(angle) > 0.8 && Math.abs(Math.sin(angle)) < 0.6) continue;
+      for (let j = length; j >= 0; j--) {
+        const x = Math.cos(angle) * (rx + j), y = Math.sin(angle) * (ry + j);
+        pixel(x, y, j === length ? '#ffe5a0' : '#9c7135');
+        if (j === 0) pixel(x - Math.sin(angle), y + Math.cos(angle), '#77532f');
+      }
     }
   }
-  // Rabo e nadadeira (somem quando está inchado)
-  if (p < 0.6) {
-    const wag = Math.round(Math.sin(m.clock * 10));
-    ctx.fillStyle = back; ctx.fillRect(Math.round(-r - 3), -2 + wag, 3, 4);
+  // Rasterização sem suavização: luz no dorso e sombra na borda inferior.
+  for (let y = -Math.ceil(ry); y <= Math.ceil(ry); y++) {
+    for (let x = -Math.ceil(rx); x <= Math.ceil(rx); x++) {
+      const d = x * x / (rx * rx) + y * y / (ry * ry);
+      if (d > 1) continue;
+      let color = '#e9ba4d';
+      const edge = (x - 1) * (x - 1) / (rx * rx) + (y - 1) * (y - 1) / (ry * ry) > 1 ||
+        (x + 1) * (x + 1) / (rx * rx) + (y + 1) * (y + 1) / (ry * ry) > 1;
+      if (edge) color = y < 0 ? '#8c632f' : '#654a2b';
+      else if (y > ry * 0.1 + x * 0.12) color = d > 0.65 ? '#dcb96c' : y > ry * 0.58 ? '#f1dca0' : '#fff0be';
+      else if (x < 0 && y < -ry * 0.3) color = '#ffdc78';
+      else if (x > rx * 0.55) color = '#ca963c';
+      pixel(x, y, color);
+    }
   }
-  ctx.fillStyle = '#2a2014'; ctx.beginPath(); ctx.ellipse(0, 0, r + 1, r * lerp(0.8, 1, p) + 1, 0, 0, Math.PI * 2); ctx.fill();
-  ctx.fillStyle = body; ctx.beginPath(); ctx.ellipse(0, 0, r, r * lerp(0.8, 1, p), 0, 0, Math.PI * 2); ctx.fill();
-  ctx.fillStyle = belly; ctx.beginPath(); ctx.ellipse(0, r * 0.35, r * 0.8, r * 0.45, 0, 0, Math.PI * 2); ctx.fill();
-  ctx.fillStyle = back;
-  for (let k = 0; k < 4; k++) ctx.fillRect(Math.round(-r * 0.6 + k * r * 0.4), Math.round(-r * 0.55 + (k % 2)), 1, 1); // pintinhas
-  ctx.fillStyle = '#ffffff'; ctx.fillRect(Math.round(r * 0.35), Math.round(-r * 0.45), 2, 2);
-  ctx.fillStyle = '#141018'; ctx.fillRect(Math.round(r * 0.35) + 1, Math.round(-r * 0.45) + 1, 1, 1);
+  // Pintas em pequenos grupos, preservando a área do olho.
+  for (const [sx, sy] of [[-0.55, -0.28], [-0.25, -0.63], [0.13, -0.51], [-0.16, -0.08]]) {
+    pixel(sx * rx, sy * ry, '#a97b33');
+    if (p > 0.5) pixel(sx * rx, sy * ry + 1, '#d5a340');
+  }
+  const eyeX = Math.round(rx * 0.4), eyeY = -Math.round(ry * 0.4);
+  pixel(eyeX, eyeY, '#714c2e', 3, 3);
+  pixel(eyeX, eyeY, '#fff9db', 2, 2);
+  pixel(eyeX + 1, eyeY + 1, '#252b2c', 2, 2);
+  pixel(eyeX + 1, eyeY, '#ffffff');
+  // Boca pequena e bochecha quente deixam o perfil legível.
+  pixel(rx - 1, 1, '#704329');
+  pixel(rx - 2, 2, '#f3ce81');
+  pixel(eyeX, eyeY + 4, '#e7a05a');
+  const finX = -Math.round(rx * 0.35), finY = 1 + (wag > 0 ? 1 : 0);
+  pixel(finX - 1, finY, '#b98237', 3, 2);
+  pixel(finX - 2, finY + 1, '#f2ca67', 3, 1);
+  pixel(finX - 1, finY + 2, '#d99e42', 2, 1);
+  sprite = { normal: canvas, hurt: hurtFlash(canvas) };
+  aquaticSprites.set(key, sprite);
+  return sprite;
+}
+
+function drawPuffer(ctx, m) {
+  const frame = Math.floor((m.clock || 0) * 8) % 4, sprite = pufferSprite(m.puff || 0, frame);
+  ctx.save();
+  ctx.translate(Math.round(m.cx), Math.round(m.cy));
+  ctx.scale(m.facing < 0 ? -1 : 1, 1);
+  ctx.drawImage(m.hurtTimer > 0 ? sprite.hurt : sprite.normal, -13, -13);
   ctx.restore();
 }
 
 function drawAquatic(ctx, m) {
+  if (m.carcass) { drawSharkCarcass(ctx, m); return; }
   const a = m.def.spec;
   if (a.style === 'jelly') { drawJelly(ctx, m); return; }
   if (a.style === 'puffer') { drawPuffer(ctx, m); return; }

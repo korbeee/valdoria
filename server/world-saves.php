@@ -81,13 +81,13 @@ try {
     if ($action === 'list' && $method === 'GET') {
         $worlds = [];
         foreach (glob($directory . '/*', GLOB_ONLYDIR) ?: [] as $folder) foreach (manifestCandidates($folder) as $file) {
-            try { $manifest = manifestAt($file); $worlds[$manifest['meta']['id']] = $manifest['meta']; break; }
+            try { $manifest = manifestAt($file); if (!worldDeleted($directory, $manifest['meta']['id'])) $worlds[$manifest['meta']['id']] = $manifest['meta']; break; }
             catch (Throwable $e) {}
         }
         // Compatibilidade mesmo se a migração ainda não foi concluída.
         foreach (glob($directory . '/*.json') ?: [] as $entry) {
             $meta = json_decode(@file_get_contents($entry) ?: '', true);
-            if (!is_array($meta) || !preg_match('/^[a-f0-9-]{36}$/D', $meta['id'] ?? '') || isset($worlds[$meta['id']])) continue;
+            if (!is_array($meta) || !preg_match('/^[a-f0-9-]{36}$/D', $meta['id'] ?? '') || isset($worlds[$meta['id']]) || worldDeleted($directory, $meta['id'])) continue;
             $legacy = $directory . '/' . $meta['id'] . '.valdoria';
             if (is_file($legacy) || is_file($legacy . '.bak')) $worlds[$meta['id']] = $meta;
         }
@@ -99,6 +99,7 @@ try {
         $lock = worldLock($directory, $id, LOCK_SH);
         try {
             $folder = findWorldFolder($directory, $id); $recovered = false;
+            if (worldDeleted($directory, $id)) throw new RuntimeException('Este mundo foi excluído.');
             if ($folder) {
                 [$save, , $recovered] = readFolderSave($folder, $id);
                 $bytes = gzencode(json_encode($save, JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR),6);
@@ -117,10 +118,27 @@ try {
         $save=checkedSave($bytes,$id);unset($bytes);
         $lock=worldLock($directory,$id,LOCK_EX);
         try {
+            if (worldDeleted($directory, $id)) throw new RuntimeException('Este mundo foi excluído. Crie uma nova aventura para salvar novamente.');
             $folder=findWorldFolder($directory,$id) ?? createWorldFolder($directory,$save['meta']['name']);
             $meta=writeFolderSave($folder,$save);
         }finally{releaseWorldLock($lock);}
         reply(200,['ok'=>true,'meta'=>$meta,'directory'=>$directory]);
+    }
+    if (($action === 'rename' && $method === 'POST') || ($action === 'delete' && $method === 'DELETE')) {
+        if (($_SERVER['HTTP_X_VALDORIA_SAVE'] ?? '') !== '1') reply(403, ['error'=>'Solicitação inválida.']);
+        $name = null;
+        if ($action === 'rename') {
+            $data = json_decode(file_get_contents('php://input', false, null, 0, 4096), true, 16, JSON_THROW_ON_ERROR);
+            $name = is_string($data['name'] ?? null) ? trim($data['name']) : '';
+            if ($name === '' || strlen($name) > 180 || preg_match('/[\x00-\x1F\x7F]/u', $name)) reply(400, ['error'=>'Digite um nome válido para o mundo (até 48 caracteres).']);
+            if (preg_match_all('/./us', $name) > 48) reply(400, ['error'=>'O nome deve ter até 48 caracteres.']);
+        }
+        $lock = worldLock($directory, $id, LOCK_EX);
+        try {
+            if ($action === 'rename') $meta = renameSavedWorld($directory, $id, $name);
+            else deleteSavedWorld($directory, $id);
+        } finally { releaseWorldLock($lock); }
+        reply(200, ['ok'=>true] + ($action === 'rename' ? ['meta'=>$meta] : []));
     }
     reply(405,['ok'=>false,'error'=>'Operação não permitida.']);
 } catch(Throwable $e) {

@@ -1,5 +1,16 @@
 'use strict';
 // Painel local de desenvolvimento. Atalho: F2. Não é autenticação de servidor.
+function adminClearMobs(g) {
+ const count=g.mobs.length;
+ if(g.inventoryUI.container?.source?.mount)g.inventoryUI.closeContainer();
+ if(g.mount)dismountElephant(g);
+ resetFishing(g);
+ for(const m of [...g.mobs])if(m.boss&&!m.dead)resetBossEncounter(g,m);
+ g.mobs=[];g.boss=null;g.spiderLasso=null;g.player.pullT=0;
+ if(typeof NET!=='undefined'&&NET.room&&NET.isHost){netFlushTiles();netSendMobs();netRelay({k:'adminMobsCleared',count});}
+ return count;
+}
+
 function initAdmin(){
  const style=document.createElement('style');style.textContent=`
  #admin-toggle,#admin-panel button,#admin-panel select{font:400 11px Silkscreen,monospace;color:#efe6d2;background:#343c45;border:0;padding:9px;cursor:pointer;box-shadow:0 0 0 2px #0a0c0f,inset 0 2px 0 #4f5a64,inset 0 -2px 0 #232930}
@@ -48,7 +59,7 @@ function initAdmin(){
  `;document.head.append(style);
  const toggle=document.createElement('button');toggle.id='admin-toggle';toggle.textContent='ADMIN · F2';document.body.append(toggle);
  const overlay=document.createElement('div');overlay.id='admin-overlay';overlay.hidden=true;
- overlay.innerHTML=`<section id="admin-panel" role="dialog" aria-modal="true" aria-labelledby="admin-title"><h2 id="admin-title">Painel de administrador</h2><p>O jogo fica pausado enquanto este painel está aberto.</p><div class="row"><button data-action="day">☀ Dia</button><button data-action="night">☾ Noite</button><button data-action="dusk">Entardecer</button></div><label><input id="admin-freeze" type="checkbox"> Congelar horário</label><div class="row"><button id="admin-fast" type="button" aria-pressed="false">⏩ Tempo 5x: desligado</button></div><label><input id="admin-god" type="checkbox"> Invencibilidade</label><div class="row"><button data-action="heal">Curar</button><button data-action="kit">Kit de ferramentas</button></div><section class="adm-items" aria-labelledby="adm-items-title"><div class="adm-head"><h3 id="adm-items-title">Itens</h3><span id="admin-item-count" role="status"></span></div><div class="adm-search"><input id="admin-item-search" type="text" placeholder="Buscar item…" aria-label="Buscar item" autocomplete="off" spellcheck="false" aria-controls="admin-item-grid"><svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="6.5" cy="6.5" r="4.5"/><path d="M10 10l4 4"/></svg><button type="button" class="adm-clear" aria-label="Limpar busca" hidden>✕</button></div><div class="adm-cats" role="group" aria-label="Categoria"></div><div id="admin-item-grid" role="listbox" aria-label="Itens"></div><div class="adm-detail" id="admin-item-detail"><canvas width="48" height="48"></canvas><div><strong></strong><span></span></div></div><div class="adm-qty" role="group" aria-label="Quantidade"><button type="button" data-step="-1" aria-label="Menos um">−</button><input id="admin-amount" type="number" min="1" max="999" step="1" value="1" inputmode="numeric" aria-label="Quantidade (1 a 999)"><button type="button" data-step="1" aria-label="Mais um">+</button><span class="adm-sep"></span><button type="button" data-qty="10">10</button><button type="button" data-qty="99">99</button><button type="button" data-qty="999">999</button></div><button data-action="item" class="adm-give">Receber</button></section><label>Criatura<select id="admin-mob"><option value="slime">Slime</option><option value="undead">Canibal</option><option value="bat">Morcego</option><option value="bomber">Dinamiteiro</option><option value="pig">Porco</option></select></label><div class="row"><button data-action="spawn">Criar próximo</button><button data-action="clear">Remover monstros</button></div><p id="admin-status" role="status">Pronto para testar.</p><button data-action="close">Voltar ao jogo · F2 / Esc</button></section>`;
+ overlay.innerHTML=`<section id="admin-panel" role="dialog" aria-modal="true" aria-labelledby="admin-title"><h2 id="admin-title">Painel de administrador</h2><p>O jogo fica pausado enquanto este painel está aberto.</p><div class="row"><button data-action="day">☀ Dia</button><button data-action="night">☾ Noite</button><button data-action="dusk">Entardecer</button></div><label><input id="admin-freeze" type="checkbox"> Congelar horário</label><div class="row"><button id="admin-fast" type="button" aria-pressed="false">⏩ Tempo 5x: desligado</button></div><label><input id="admin-god" type="checkbox"> Invencibilidade</label><div class="row"><button data-action="heal">Curar</button><button data-action="kit">Kit de ferramentas</button></div><section class="adm-items" aria-labelledby="adm-items-title"><div class="adm-head"><h3 id="adm-items-title">Itens</h3><span id="admin-item-count" role="status"></span></div><div class="adm-search"><input id="admin-item-search" type="text" placeholder="Buscar item…" aria-label="Buscar item" autocomplete="off" spellcheck="false" aria-controls="admin-item-grid"><svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="6.5" cy="6.5" r="4.5"/><path d="M10 10l4 4"/></svg><button type="button" class="adm-clear" aria-label="Limpar busca" hidden>✕</button></div><div class="adm-cats" role="group" aria-label="Categoria"></div><div id="admin-item-grid" role="listbox" aria-label="Itens"></div><div class="adm-detail" id="admin-item-detail"><canvas width="48" height="48"></canvas><div><strong></strong><span></span></div></div><div class="adm-qty" role="group" aria-label="Quantidade"><button type="button" data-step="-1" aria-label="Menos um">−</button><input id="admin-amount" type="number" min="1" max="999" step="1" value="1" inputmode="numeric" aria-label="Quantidade (1 a 999)"><button type="button" data-step="1" aria-label="Mais um">+</button><span class="adm-sep"></span><button type="button" data-qty="10">10</button><button type="button" data-qty="99">99</button><button type="button" data-qty="999">999</button></div><button data-action="item" class="adm-give">Receber</button></section><label>Criatura<select id="admin-mob"><option value="slime">Slime</option><option value="undead">Canibal</option><option value="bat">Morcego</option><option value="bomber">Dinamiteiro</option><option value="pig">Porco</option></select></label><div class="row"><button data-action="spawn">Criar próximo</button><button data-action="clear" title="Remove monstros, animais, chefes e corpos, sem gerar drops.">Remover criaturas</button></div><p id="admin-status" role="status">Pronto para testar.</p><button data-action="close">Voltar ao jogo · F2 / Esc</button></section>`;
  document.body.append(overlay);
  overlay.querySelector('#admin-god').closest('label').insertAdjacentHTML('afterend', `<label><input id="admin-fly" type="checkbox"> Voar · WASD / setas · Shift acelera</label><label><input id="admin-vision" type="checkbox"> Visão noturna</label><label><input id="admin-maptp" type="checkbox"> Teleportar clicando no mapa (abra com M)</label><div class="row"><button data-action="reveal">Explorar mapa inteiro</button><button data-action="home">Voltar ao acidente</button></div><div class="row"><button data-action="sky">Ir ao céu (observatório)</button><button data-action="skynest">Ninho da Tempestade</button><button data-action="skystone">Pedra dos Ventos</button></div>`);
  const mobSelect=overlay.querySelector('#admin-mob');
@@ -221,7 +232,10 @@ function initAdmin(){
   if(action==='thunder'){const w=game.weather??=createWeather();w.flash=1;game.crashAudio?.thunder(.3,.75);status('Relâmpago!');}
   if(action==='item'&&!itemButton.disabled&&ITEM_DEFS[selectedId]){const n=itemAmount();amount.value=String(n);give(selectedId,n);}
   if(action==='kit'){let missing=0;for(const id of [ITEM.WOOD_SWORD,ITEM.WOOD_PICKAXE,ITEM.WOOD_AXE,ITEM.WOOD_SHOVEL,ITEM.WOOD_HAMMER])missing+=game.inventory.add(id,1);status(missing?'Inventário cheio: parte do kit não coube.':'Espada, picareta, machado, pá e martelo recebidos.');}
-  if(action==='clear'){if(game.boss)resetBossEncounter(game,game.boss);game.mobs=game.mobs.filter(m=>!m.hostile);game.boss=null;status('Monstros removidos, sem gerar drops.');}
+  if(action==='clear'){
+   if(typeof NET!=='undefined'&&NET.guest){netRelay({k:'adminClearMobs'},NET.hostCid);status('Removendo todas as criaturas…');}
+   else{const n=adminClearMobs(game);status(n+' criaturas removidas, sem gerar drops.');}
+  }
   if(action==='spawn'){
    const kind=overlay.querySelector('#admin-mob').value;
    const hostile=WILDLIFE[kind]?!!WILDLIFE[kind].hostile:kind!=='pig'&&kind!=='cubepig';
@@ -272,6 +286,16 @@ function adminBuildArena(g,origin=g.player,enter=true){
 }
 window.addEventListener('DOMContentLoaded',()=>{
  const relay=netOnRelay;netOnRelay=function(from,d){
+  if(NET.isHost&&d?.k==='adminClearMobs'){
+   if(!NET.peers.get(from)?.seen)return;
+   adminClearMobs(game);return;
+  }
+  if(NET.guest&&from===NET.hostCid&&d?.k==='adminMobsCleared'){
+   if(game.mount)dismountElephant(game);
+   if(game.inventoryUI.container?.source?.mount)game.inventoryUI.closeContainer();
+   resetFishing(game);game.mobs=[];game.boss=null;game.spiderLasso=null;game.player.pullT=0;
+   const status=document.querySelector('#admin-status');if(status)status.textContent=d.count+' criaturas removidas, sem gerar drops.';return;
+  }
   if(NET.isHost&&d?.k==='adminArenaBuild'){
    const p=NET.peers.get(from);if(!p?.seen)return;
    if(performance.now()-(p.arenaRequestAt||-10000)<3000)return;p.arenaRequestAt=performance.now();

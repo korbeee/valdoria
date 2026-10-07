@@ -22,15 +22,15 @@
 
 // ---------------------------------------------------------------- Texugo (floresta, hostil)
 {
-  const pal = [[14, 12, 18], [40, 38, 46], [78, 76, 88], [128, 126, 140], [188, 186, 200]];
+  const pal = [[27,28,31],[57,59,63],[94,97,100],[137,141,143],[181,185,185]];
   // rosto: faixa branca no meio da testa até o focinho e máscara escura em volta dos olhos
-  const face = (dx, dy, nx, ny) => (ny < -0.3 ? [240, 238, 246] : ny < 0.25 ? [14, 12, 18] : [226, 224, 234]);
+  const face = (dx,dy,nx,ny) => nx>.05&&nx<.7&&ny>-.8&&ny<.4?[29,29,32]:ny>.55?[195,198,192]:[243,244,230];
   const legs = { fore: { L1: 4, L2: 3.6, w1: 3.4, w2: 2.6, pal, hoof: [20, 18, 22], paw: 3 }, hind: { L1: 4.2, L2: 3.8, w1: 3.6, w2: 2.6, pal, hoof: [20, 18, 22], paw: 3 } };
-  const head = { style: 'canine', skull: [5.4, 4.6], snout: { len: 5.5, h: 2.9, tipH: 1.7, wide: 1.2, drop: 1.4 }, ears: { style: 'round', h: 3, w: 3.8, dx: 0.5, inner: [210, 200, 210], pal: [[26, 24, 30], [70, 68, 80], [226, 224, 232]] }, eye: { dx: 2, dy: -0.4 }, nose: [18, 16, 20], pattern: face, pal };
+  const head = { style: 'canine', skull: [4.8,4.2], snout: { len: 4, h: 2.3, tipH: 1.2, wide: 1.1, drop: 1.2 }, ears: { style: 'round', h: 2.8, w: 3.4, dx: -.4, inner:[80,79,75], pal:[[45,46,48],[153,156,155],[242,242,227]] }, eye: { dx: 2, dy: -.4, big:true }, nose: [22,23,25], pattern: face, pal };
   const P = (f) => ({
-    ground: 27, cx: 19, cy: 18, rx: 10.5, ry: 6.4, pal, seed: 41, belly: -0.1, legs, stride: 6, lift: 2.4, gait: 'trot', bob: 1, sq: 2.2,
-    pattern: (dx, dy, nx, ny, idx) => (ny < -0.05 && (hash2(dx, dy >> 1, 3) > 0.45 || (dx + dy) % 5 === 0) ? pal[Math.min(4, idx + 2)] : null),
-    head, neck: [5.5, 1.5], neckThick: 0.95, tail: frTail('stub', pal, { w: 2.8 }),
+    ground: 27, cx: 19, cy: 17.5, rx: 11, ry: 6.5, pal, seed: 41, belly: -.2, fur:.5, legs, stride: 6, lift: 2.4, gait: 'trot', bob: 1, sq: 2.2,
+    pattern:(dx,dy,nx,ny,idx)=>ny<.15&&(dx*2+dy+60)%6===0?pal[clamp(idx+1,0,4)]:ny>.55?pal[1]:null,
+    head, neck: [4.6, 1], neckThick: .9, tail: frTail('stub', pal, { w: 2.2 }),
     pose: (I, f) => (f === 14 ? { bodyDy: 3, headDx: -1, headDy: 3, open: 2.2 } : f === 15 ? { bodyDy: -1, headDx: 3, open: 3.4, tilt: -0.1 } : I.idle === 2 ? { headDy: 3, headDx: 3, tilt: 0.5 } : I.idle === 3 ? { earTwitch: true } : {}),
   });
   frSpecies('texugo', { name: 'Texugo', biome: BIOME.FOREST, hostile: true, hp: 22, speed: 46, damage: 7, w: 26, h: 15, drops: [[ITEM.LEATHER, 1, 2], [ITEM.MEAT, 1, 2]], color: '#6a6874' },

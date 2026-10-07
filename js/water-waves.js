@@ -274,7 +274,12 @@ function dropWaterPhysics(g, d, dt) {
   }
   // Boia: metade do ícone para fora, subindo e descendo com a onda e com um balanço próprio
   const target = surf - 1 + waveHeightAt(g, d.x, Math.floor((surf + 1) / T)) + Math.sin(d.age * 2.2 + d.x * 0.1) * 1.2;
-  d.vy += ((target - d.y) * 40 - d.vy * 6) * dt;
+  const rise = target - d.y;
+  if (rise < -3) {
+    // abaixo da superfície: sobe boiando devagar (no máximo ~22 px/s, mais lento ainda ao chegar), em vez de ser puxado de volta
+    const want = -Math.min(22, 5 + (-rise) * 0.22);
+    d.vy += (want - d.vy) * Math.min(1, dt * (d.vy > want ? 5 : 2.2));
+  } else d.vy += (rise * 40 - d.vy * 6) * dt;       // na linha d'água: mola mansa, balançando com a onda
   const cur = waterCurrentAt(w, d.x, d.y - 2, d.y + 2);   // a correnteza leva o item junto
   d.vx += (cur - d.vx) * Math.min(1, dt * (cur ? 2.5 : 1.2));
   const nx = d.x + d.vx * dt;

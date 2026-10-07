@@ -65,7 +65,7 @@ const server=spawn('C:/xampp/php/php.exe',['-S','127.0.0.1:18923','-t',process.c
   const denied=await fetch('http://127.0.0.1:18923/server/world-saves.php?action=save&id='+result.id,{method:'PUT',body:'bad'});assert.equal(denied.status,403);
   const traversal=await fetch('http://127.0.0.1:18923/server/world-saves.php?action=load&id=../escape');assert.equal(traversal.status,400);
   const cross=await fetch('http://127.0.0.1:18923/server/world-saves.php',{headers:{Origin:'http://evil.test'}});assert.equal(cross.status,403);
-  await page.reload();await page.waitForFunction(()=>WorldSaves.worlds.length===6,null,{polling:25});await page.locator('[data-action="continue-worlds"]').click();await page.locator('[data-world-id="'+result.id+'"]').click();await page.waitForFunction(id=>WorldSaves.active?.id===id,result.id,{polling:25});
+  await page.reload();await page.waitForFunction(()=>WorldSaves.worlds.length===6,null,{polling:25});await page.locator('[data-action="continue-worlds"]').click();await page.locator('[data-action="load-world"][data-world-id="'+result.id+'"]').click();await page.waitForFunction(id=>WorldSaves.active?.id===id,result.id,{polling:25});
   assert.equal(await page.evaluate(()=>game.day),9);assert.deepEqual(errors,[]);
   console.log(JSON.stringify({fullWorld:result,restore:true,backupRecovery:true,reloadAndActualClick:true,security:true,files:fs.readdirSync(directory).map(file=>({file,bytes:fs.statSync(path.join(directory,file)).size}))}));
  }finally{if(browser)await browser.close();server.kill();await new Promise(r=>setTimeout(r,200));fs.rmSync(directory,{recursive:true,force:true});}

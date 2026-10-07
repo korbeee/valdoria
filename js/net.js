@@ -301,6 +301,13 @@ function netOnRelay(from, d) {
     case 'dropTake': netApplyTake(d); break;
     case 'mobs': if (NET.guest) netApplyMobs(d); break;
     case 'mobHit': if (NET.isHost) netHostMobHit(d, from); break;
+    case 'sharkAction':
+      if (NET.isHost && p && !NET.worldPaused) {
+        const body = game.mobs.find(m => m.netId === d.id && m.carcass);
+        sharkAction(game, p, d.action, body);
+      }
+      break;
+    case 'sharkNotice': if (NET.guest && from === NET.hostCid && typeof d.text === 'string') toast(d.text); break;
     case 'mobGone': if (NET.isHost) { const m = game.mobs.find((x) => x.netId === d.id); if (m) m.despawn = true; } break;
     case 'env': if (NET.guest) netApplyEnv(d.env, d); break;
     case 'chest': netApplyChest(d); break;
@@ -455,7 +462,7 @@ function netApplyChest(d) {
 // ---------------------------------------------------------------- bichos (anfitrião manda)
 const NET_MOB_CLASS = () => ({ M: Monster, W: Wildlife, P: Pig });
 const netMobCode = (m) => (m.constructor === Monster ? 'M' : m.constructor === Wildlife ? 'W' : m.constructor === Pig ? 'P' : null);
-const netMirrorable = (m) => !m.dead && !m.despawn && netMobCode(m);
+const netMirrorable = (m) => (!m.dead || m.carcass) && !m.despawn && netMobCode(m);
 function netMobView(m) {
   m.netId ??= ++NET.mobSeq;
   const v = {};
@@ -496,6 +503,7 @@ function netApplyMobs(d) {
   netApplyEncounter(d);
 }
 function netMirrorHit(damage, fromX) {
+  if (this.carcass) return;
   this.hurtTimer = 0.3; // pisca já, o resto vem do anfitrião
   netRelay({ k: 'mobHit', id: this.netId, dmg: damage, fx: fromX }, NET.hostCid);
 }

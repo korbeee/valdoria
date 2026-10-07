@@ -20,13 +20,19 @@ LOOT_TABLES.shipwreck = [
 const BEACH_W = 40;     // largura da praia (duna + descida até a água)
 const RIVER_EVERY = 850; // um rio a cada tantos blocos de largura do mundo
 
-// Relevo do oceano: duna de areia segurando o mar, praia descendo e o fundo com ondulações
+// Relevo do oceano: duna de areia segurando o mar e praia descendo; depois uma laguna rasa e clara (4 a 7 blocos), uma
+// crista de recife e o paredão que despenca para o mar fundo, onde fica o navio. As ondulações do fundo só aparecem fora da laguna.
+const LAGOON_W = 62;   // largura da laguna, depois da praia
 function oceanFloorAt(world, x, landS) {
   const d = x - world.oceanStart, sea = world.seaLevel, seed = world.seed;
   if (d < 18) return Math.round(lerp(landS, Math.min(landS, sea - 3), smoothstep(d / 18)));
   if (d < BEACH_W) return Math.round(lerp(Math.min(landS, sea - 3), sea + 1, smoothstep((d - 18) / (BEACH_W - 18))));
-  const k = smoothstep(clamp((d - BEACH_W) / 90, 0, 1)), deep = 32 + Math.round(noise1(x * 0.011, seed + 90) * 6);
-  return Math.round(sea + 1 + k * deep + (noise1(x * 0.045, seed + 91) * 4 + noise1(x * 0.13, seed + 93) * 1.5) * k);
+  const lagoon = 5 + noise1(x * 0.05, seed + 94) * 2.2 + noise1(x * 0.2, seed + 95) * 0.8;
+  const k1 = smoothstep(clamp((d - BEACH_W) / 12, 0, 1)), k2 = smoothstep(clamp((d - (BEACH_W + LAGOON_W)) / 48, 0, 1));
+  const deep = 32 + Math.round(noise1(x * 0.011, seed + 90) * 6);
+  const crest = Math.exp(-(((d - (BEACH_W + LAGOON_W - 4)) / 7) ** 2)) * 2.4;        // a borda do recife sobe um pouco antes de despencar
+  const ripple = (noise1(x * 0.045, seed + 91) * 4 + noise1(x * 0.13, seed + 93) * 1.5) * (0.3 * k1 + 0.7 * k2);
+  return Math.round(sea + 1 + k1 * lagoon + k2 * (deep - lagoon) - crest * (1 - k2) + ripple);
 }
 
 function* generateWater(world, rnd) {
@@ -168,23 +174,34 @@ function buildWaterfall(world, rnd, river) {
   river.span = [Math.min(river.span[0], far - 4, e - 4), Math.max(river.span[1], far + 4, e + 4)];
 }
 
-// Navio afundado (baú do capitão com o tridente garantido) e baús perdidos pelo fundo do mar
+// Navio afundado (galeão em corte lateral; o baú do capitão tem o tridente só às vezes) e baús perdidos pelo fundo do mar
+const SHIPWRECK = { length: 38, minDepth: 22, maxDepth: 38, tridentChance: 0.5 };
+
 function buildOceanTreasures(w, rnd) {
   if (w.oceanStart >= w.w) return;
-  const sea = w.seaLevel, L = 26;
-  let ship = -1;
-  for (let t = 0; t < 60 && ship < 0; t++) {
-    const x = w.oceanStart + BEACH_W + 40 + Math.floor(rnd() * Math.max(1, w.w - w.oceanStart - BEACH_W - 80 - L));
-    let ok = x + L < w.w - 4;
-    for (let k = 0; k <= L && ok; k += 2) ok = w.surface[x + k] - sea > 18;
-    if (ok) ship = x;
+  const sea = w.seaLevel, L = SHIPWRECK.length;
+  // O navio fica onde o fundo está entre 22 e 38 blocos abaixo do mar: o mastro principal ainda alcança a superfície
+  const spots = [];
+  for (let x = w.oceanStart + BEACH_W + 30; x + L + 10 < w.w; x += 2) {
+    let ok = true;
+    for (let k = 0; k <= L && ok; k += 2) { const d = w.surface[x + k] - sea; ok = d >= SHIPWRECK.minDepth && d <= SHIPWRECK.maxDepth; }
+    if (ok) spots.push(x);
   }
-  if (ship >= 0) buildShipwreck(w, rnd, ship, L);
+  let ship = spots.length ? spots[Math.floor(rnd() * spots.length)] : -1;
+  if (ship < 0) {                                                   // oceano raso demais: procura qualquer fundo razoável
+    for (let t = 0; t < 60 && ship < 0; t++) {
+      const x = w.oceanStart + BEACH_W + 20 + Math.floor(rnd() * Math.max(1, w.w - w.oceanStart - BEACH_W - 40 - L));
+      let ok = x + L + 6 < w.w;
+      for (let k = 0; k <= L && ok; k += 2) ok = w.surface[x + k] - sea > 14;
+      if (ok) ship = x;
+    }
+  }
+  if (ship >= 0) buildShipwreck(w, ship, L);
 
   const want = 4 + Math.floor(rnd() * 3);
   for (let t = 0, made = 0; t < 80 && made < want; t++) {
     const x = w.oceanStart + BEACH_W + Math.floor(rnd() * Math.max(1, w.w - w.oceanStart - BEACH_W - 6));
-    if (ship >= 0 && x > ship - 4 && x < ship + L + 4) continue;
+    if (ship >= 0 && x > ship - 10 && x < ship + L + 10) continue;
     const y = w.surface[x] - 1;
     if (y - sea < 4 || !SOLID[w.getTile(x, y + 1)]) continue;
     for (let yy = y - 1; w.getTile(x, yy) === TILE.SEAWEED; yy--) sSet(w, x, yy, TILE.AIR);
@@ -193,59 +210,120 @@ function buildOceanTreasures(w, rnd) {
   }
 }
 
-function buildShipwreck(w, rnd, x0, L) {
-  const sea = w.seaLevel, x1 = x0 + L;
-  // Fundo aplainado embaixo do casco
+// Casco em corte lateral: popa (u = 0) à esquerda, proa (u = L) à direita, espelhado se `dir` < 0.
+//   convés em D; convés de canhões em G; porão embaixo; cabine do capitão na popa; três mastros (o principal passa da água)
+// Tudo que decide a forma usa um sorteio próprio (semente do mundo): o navio nunca muda o resto da geração.
+function buildShipwreck(w, x0, L) {
+  // semente embaralhada (sementes em sequência não podem dar navios parecidos nem o mesmo sorteio do tridente)
+  const mix = (v) => { v = Math.imul((v ^ (v >>> 16)) >>> 0, 0x45d9f3b); v = Math.imul((v ^ (v >>> 16)) >>> 0, 0x45d9f3b); return ((v ^ (v >>> 16)) >>> 0); };
+  const sea = w.seaLevel, x1 = x0 + L, r = mulberry32(mix((w.seed ^ 0x5417) >>> 0)), tridentRoll = mix((w.seed ^ 0x77a3) >>> 0) / 4294967296, dir = r() < 0.5 ? 1 : -1;
+  const X = (u) => (dir > 0 ? x0 + u : x1 - u);
+  const sm = (t) => smoothstep(clamp(t, 0, 1));
+  // Fundo aplainado embaixo do casco, com as pontas descendo de volta ao fundo natural
   const hs = [];
   for (let x = x0; x <= x1; x++) hs.push(w.surface[x]);
   hs.sort((a, b) => a - b);
-  const floor = hs[hs.length >> 1];
-  for (let x = x0 - 2; x <= x1 + 2; x++) {
-    for (let y = Math.min(floor, w.surface[x]) - 12; y < Math.max(floor, w.surface[x]) + 1; y++) {
+  const F = hs[hs.length >> 1], D = F - 8, G = F - 4, M = 8;
+  for (let x = x0 - M; x <= x1 + M; x++) {
+    const edge = x < x0 ? (x0 - x) / M : x > x1 ? (x - x1) / M : 0, orig = w.surface[x], h = Math.round(lerp(F, orig, sm(edge)));
+    for (let y = Math.min(h, orig) - 16; y < Math.max(h, orig) + 1; y++) {
       if (y < sea) continue;
-      if (y < floor) sSet(w, x, y, TILE.AIR, WALL.NONE);
-      else sSet(w, x, y, TILE.SAND);
+      if (y < h) sSet(w, x, y, TILE.AIR, WALL.NONE); else sSet(w, x, y, TILE.SAND);
     }
-    w.surface[x] = floor;
+    w.surface[x] = h;
   }
-  // Casco: fundo enterrado 1 bloco na areia, costado curvo e convés furado
-  const deck = floor - 5;
-  for (let y = deck; y <= floor; y++) {
-    const j = y - deck, inset = Math.floor((j * j) / 6);
-    const a = x0 + inset, b = x1 - inset;
-    for (let x = a; x <= b; x++) {
-      const edge = x === a || x === b || y === floor || y === deck;
-      const broken = rnd() < (y === deck ? 0.3 : 0.12) && x > a + 1 && x < b - 1;
-      if (edge && !broken) sSet(w, x, y, TILE.PLANKS, WALL.PLANKS);
-      else sSet(w, x, y, TILE.AIR, y > deck && rnd() < 0.85 ? WALL.PLANKS : WALL.NONE);
+  const top = (u) => D - (u > L - 11 ? Math.round(3 * sm((u - (L - 11)) / 11)) : 0);          // a proa sobe
+  const bot = (u) => F - (u < 8 ? Math.round(5 * sm((8 - u) / 8)) : u > L - 14 ? Math.round(6 * sm((u - (L - 14)) / 14)) : 0); // quilha curva nas pontas
+  const plank = (u, y) => sSet(w, X(u), y, TILE.PLANKS, WALL.PLANKS);
+  const hole = (u, y, wall = WALL.NONE) => sSet(w, X(u), y, TILE.AIR, wall);
+  const hatch = Math.round(L * 0.58), hatchW = 2;                     // alçapão do convés, com a escada
+  // 1. Casco: quilha dupla, borda do convés, popa e proa; por dentro, a parede de tábuas (às vezes falha)
+  for (let u = 0; u <= L; u++) {
+    const t = top(u), b = bot(u);
+    for (let y = t; y <= b; y++) {
+      const keel = y >= b - 1, rim = y === t && r() > 0.2, wall = u === 0 || u === L;
+      if (keel || wall || rim) plank(u, y); else hole(u, y, r() < 0.1 ? WALL.NONE : WALL.PLANKS);
+    }
+    for (let y = b + 1; y <= F; y++) sSet(w, X(u), y, TILE.SAND);       // a quilha curva fica enterrada num montinho de areia
+    // costelas do casco: viga de uma ponta à outra do porão
+    if (u > 2 && u < L - 2 && u % 6 === 0) for (let y = D + 1; y < b - 1; y++) sSet(w, X(u), y, TILE.CARVED_BEAM, WALL.PLANKS);
+  }
+  // 2. Convés principal (rasgado onde o mastro caiu) e convés de canhões
+  for (let u = 1; u < L; u++) {
+    const gap = (u >= hatch && u < hatch + hatchW) || (u > L * 0.4 && u < L * 0.52 && r() < 0.75) || r() < 0.16;
+    if (!gap) plank(u, D); else hole(u, D, WALL.PLANKS);
+  }
+  for (let u = 4; u < L - 5; u++) {
+    if (bot(u) - 2 <= G) continue;
+    const gap = (u >= hatch && u < hatch + hatchW) || r() < 0.28;
+    if (!gap) plank(u, G);
+  }
+  for (let y = D; y < F - 1; y++) sSet(w, X(hatch), y, TILE.LADDER, WALL.PLANKS);   // escada do convés ao porão
+  // 3. Amurada com balaústres (na popa, sobre a cabine, nada)
+  for (let u = 13; u < L - 2; u++) if (r() < 0.62 && w.getTile(X(u), D) === TILE.PLANKS) sSet(w, X(u), D - 1, TILE.BALUSTRADE, WALL.NONE);
+  // 4. Cabine do capitão na popa (u 0..11): parede com janelas de vidro, teto, porta, mesa, vela e lampião
+  for (let u = 0; u <= 11; u++) {
+    plank(u, D - 5);                                                  // teto
+    for (let y = D - 4; y < D; y++) {
+      if (u === 0) { if (y === D - 3 || y === D - 2) sSet(w, X(u), y, TILE.GLASS, WALL.PLANKS); else plank(u, y); }
+      else if (u === 11) { if (y >= D - 2) hole(u, y, WALL.PLANKS); else plank(u, y); }     // porta aberta
+      else hole(u, y, WALL.PLANKS);
     }
   }
-  // Rombo no costado
-  const hole = x0 + 4 + Math.floor(rnd() * (L - 8));
-  for (let y = deck + 2; y < floor - 1; y++) sSet(w, hole, y, TILE.AIR, WALL.NONE);
-  // Mastro quebrado e cabine na popa
-  const mast = x0 + Math.floor(L / 2);
-  const mh = 5 + Math.floor(rnd() * 5);
-  for (let y = deck - 1; y >= deck - mh; y--) sSet(w, mast, y, TILE.CARVED_BEAM);
-  const c0 = x1 - 8, c1 = x1 - 3;
-  for (let x = c0; x <= c1; x++)
-    for (let y = deck - 4; y < deck; y++) {
-      const edge = x === c0 || x === c1 || y === deck - 4;
-      sSet(w, x, y, edge && !(x === c0 && y > deck - 3) ? TILE.PLANKS : TILE.AIR, WALL.PLANKS);
+  sSet(w, X(5), D - 1, TILE.TABLE, WALL.PLANKS); sSet(w, X(5), D - 2, TILE.CANDLE, WALL.PLANKS);
+  sSet(w, X(4), D - 1, TILE.CHAIR, WALL.PLANKS); sSet(w, X(7), D - 1, TILE.CHAIR, WALL.PLANKS);
+  sSet(w, X(8), D - 4, TILE.LANTERN, WALL.PLANKS);
+  // 5. Mastros: o principal é comprido e rompe a superfície; o da proa quebrou no meio; vergas com as velas rasgadas
+  const sails = [], mainU = Math.round(L * 0.42), foreU = Math.round(L * 0.76);
+  const mainH = clamp(D - (sea - 3), 10, 30), foreH = 11 + Math.floor(r() * 4);
+  const mast = (u, h, yards) => {
+    for (let y = D - 1; y >= D - h; y--) sSet(w, X(u), y, TILE.CARVED_BEAM, WALL.NONE);
+    for (const [k, half] of yards) {
+      const y = D - h + k;
+      for (let du = -half; du <= half; du++) if (r() > 0.12 || Math.abs(du) < 2) sSet(w, X(u + du), y, TILE.PLATFORM, WALL.NONE);
+      sails.push({ x: X(u), y: y + 1, half, h: Math.min(10, h - k - 2), seed: Math.floor(r() * 1e6) });
     }
-  sSet(w, c0 + 2, deck - 1, TILE.LANTERN, WALL.PLANKS);
-  // Baú do capitão (no porão, com o tridente) e baú da cabine
-  addLootChest(w, x0 + 6 + Math.floor(rnd() * 4), floor - 1, 'shipwreck', rnd);
+  };
+  mast(mainU, mainH, [[3, 5], [Math.min(mainH - 5, 13), 4]]);
+  mast(foreU, foreH, [[2, 4]]);
+  sSet(w, X(foreU), D - foreH, TILE.AIR, WALL.NONE);                  // ponta do mastro de proa quebrada
+  for (let k = 1; k <= 6; k++) sSet(w, X(L) + dir * k, top(L) - 1 - (k > 4 ? 1 : 0), TILE.PLATFORM, WALL.NONE); // gurupés
+  // 6. Carga e baús: barris e caixotes no porão e no convés de canhões; o baú do capitão (tridente por sorte) na cabine
+  for (let u = 8; u < L - 12; u++) {
+    const roll = r(), free = (y) => w.getTile(X(u), y) === TILE.AIR && X(u) !== X(hatch);
+    if (roll < 0.22 && free(F - 2)) { sSet(w, X(u), F - 2, roll < 0.1 ? TILE.CRATE : TILE.BARREL, WALL.PLANKS); if (roll < 0.05 && free(F - 3)) sSet(w, X(u), F - 3, TILE.CRATE, WALL.PLANKS); }
+    else if (roll > 0.88 && w.getTile(X(u), G) === TILE.PLANKS && free(G - 1)) sSet(w, X(u), G - 1, TILE.BARREL, WALL.PLANKS);
+  }
+  const lootRnd = () => r();
+  addLootChest(w, X(2), D - 1, 'shipwreck', lootRnd);
   const captain = w.lootChests[w.lootChests.length - 1];
-  const free = captain.slots.findIndex((s) => !s);
-  captain.slots[free >= 0 ? free : 0] = { item: ITEM.TRIDENT, count: 1 };
-  addLootChest(w, c0 + 3, deck - 1, 'shipwreck', rnd);
-  // Tudo que ficou oco embaixo do nível do mar se enche de água
-  for (let x = x0 - 2; x <= x1 + 2; x++)
-    for (let y = Math.max(sea, deck - mh - 2); y <= floor; y++) {
+  if (tridentRoll < SHIPWRECK.tridentChance) {
+    const free = captain.slots.findIndex((s) => !s);
+    captain.slots[free >= 0 ? free : 0] = { item: ITEM.TRIDENT, count: 1 };
+  }
+  const holdU = Math.round(L * 0.62);
+  if (w.getTile(X(holdU), F - 2) !== TILE.AIR) sSet(w, X(holdU), F - 2, TILE.AIR);
+  addLootChest(w, X(holdU), F - 2, 'shipwreck', lootRnd);
+  // 7. Vida crescendo no casco: algas no convés e corais na amurada e nas bordas; tábuas soltas na areia
+  for (let u = 2; u < L - 1; u++) {
+    if (w.getTile(X(u), D) !== TILE.PLANKS || w.getTile(X(u), D - 1) !== TILE.AIR) continue;
+    const roll = r();
+    if (roll < 0.3) { const n = 1 + Math.floor(r() * 3); for (let k = 1; k <= n; k++) if (w.getTile(X(u), D - k) === TILE.AIR) sSet(w, X(u), D - k, TILE.SEAWEED); }
+    else if (roll < 0.45) sSet(w, X(u), D - 1, CORAL_TILES[Math.floor(r() * CORAL_TILES.length)]);
+  }
+  for (let k = 0; k < 14; k++) {
+    const x = x0 - M + 1 + Math.floor(r() * (L + 2 * M - 2)), inside = x >= x0 - 1 && x <= x1 + 1, sy = w.surface[x] - 1;
+    if (inside || !SOLID[w.getTile(x, sy + 1)] || w.getTile(x, sy) !== TILE.AIR) continue;
+    if (k % 3 === 0) sSet(w, x, sy, TILE.PLANKS); else sSet(w, x, sy, CORAL_TILES[Math.floor(r() * CORAL_TILES.length)]);
+  }
+  // 8. Tudo que ficou oco embaixo do nível do mar se enche de água
+  for (let x = x0 - M; x <= x1 + M; x++)
+    for (let y = sea; y <= F + 1; y++) {
       const i = y * w.w + x;
       w.water[i] = SOLID[w.tiles[i]] ? 0 : WATER_MAX;
     }
+  // Dados para a arte (js/ocean-art.js): velas rasgadas nas vergas, bandeira no topo do mastro e a âncora na proa
+  w.wreck = { x0, x1, F, D, G, dir, sails, flag: { x: X(mainU), y: D - mainH }, anchor: { x: X(L) + dir * 4, y: w.surface[X(L) + dir * 4] }, mainU, foreU };
 }
 
 // ---------- Poças e lagos de caverna ----------
